@@ -1,0 +1,12 @@
+[run]
+branch = True
+source = sktutor
+
+[paths]
+source =
+   src/sktutor
+   .tox/*/lib/python*/site-packages/sktutor
+#   .tox/pypy*/site-packages/sktutor
+
+[report]
+show_missing = True
