@@ -4,10 +4,10 @@ sktutor package
 Submodules
 ----------
 
-sktutor\.sktutor module
------------------------
+sktutor\.preprocessing module
+-----------------------------
 
-.. automodule:: sktutor.sktutor
+.. automodule:: sktutor.preprocessing
     :members:
     :undoc-members:
     :show-inheritance:

@@ -10,6 +10,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
+        'scipy>=0.19.0',
         'pandas>=0.20.1',
         'scikit-learn>=0.18.1'
 ]
