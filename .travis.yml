@@ -1,27 +1,20 @@
+# make it explicit that we favor the new container-based travis workers
+sudo: false
+
 language: python
 
 matrix:
     include:
         - python: 3.4
-          env: 
-              - TOXENV=py34
-              - NUMPYSPEC="numpy==1.8.2"
+          env: TOXENV=py34
         - python: 3.5
-          env:
-              - TOXENV=py35
-              - NUMPYSPEC="numpy"
+          env: TOXENV=py35
         - python: 3.6
-          env:
-              - TOXENV=py36
-              - NUMPYSPEC="numpy"
+          env: TOXENV=py36
         - python: 3.6
-          env:
-              - TOXENV=docs
-              - NUMPYSPEC="numpy"
+          env: TOXENV=docs
         - python: 3.6
-          env:
-              - TOXENV=flake8
-              - NUMPYSPEC="numpy"
+          env: TOXENV=flake8
 
 script: tox
 
