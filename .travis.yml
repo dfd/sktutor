@@ -19,6 +19,7 @@ script: tox
 
 before_install:
   - pip install codecov tox
+  - xargs -L 1 pip install < requirements.txt
 
 after_success:
   - tox -e coverage-report
