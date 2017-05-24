@@ -13,9 +13,9 @@ sktutor
         :target: https://sktutor.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/dfd/sktutor/shield.svg
-     :target: https://pyup.io/repos/github/dfd/sktutor/
-     :alt: Updates
+.. image:: https://codecov.io/gh/dfd/sktutor/branch/master/graph/badge.svg
+        :target: https://codecov.io/gh/dfd/sktutor
+        :alt: Code Coverage Status
 
 
 sktutor helps your machines learn.
