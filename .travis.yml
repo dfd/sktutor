@@ -1,0 +1,39 @@
+# make it explicit that we favor the new container-based travis workers
+sudo: false
+
+language: python
+
+matrix:
+    include:
+        - python: 3.5
+          env: TOXENV=py35
+        - python: 3.6
+          env: TOXENV=py36
+        - python: 3.6
+          env: TOXENV=docs
+        - python: 3.6
+          env: TOXENV=flake8
+
+script: tox
+
+before_install:
+  - pip install codecov tox
+
+after_success:
+  - tox -e coverage-report
+  - codecov
+
+
+notifications:
+  email: true
+
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: dfd
+  password:
+    secure: ZjTEH8X4JtfYQPUwF2jo3E3SF5klrfPPxcY3fUqOFfqSmQCXmyt321HZCa/xdkUMQV+IxD7AIrASQSL5v+rsuFIEsG8wZBHhCP/8ahD1mOzSZO1ZfaVVo3JvLhi9yh/Q6rfirLWju2D1H7u6gAMOMkCN0kRKzkPStI+aUQ8A+9hhlwYfn8NLEyiT1xduKTW++2K7it9YRmQFYfQOXp9xf1XuM9nEtKw2ZxOale4OXNkck0xwdBrpA3jnqG0q9Ph7NdztcpYQ/iOKVqbp4IdZQGuWqC+4Rw+39eCA3Tr4OM5hCWb0rJ3YhdG5IbsgtfTtcOx94sBdjhAFy+0hJuxKvZYu8mIRQ1JBBAgFHngFOvtMoPsd6G/OG38bq4kZVH3JUTWifSQ5ZF1SEhCWlfQEDoSdJyBNI5iF2Y/DIemmH1PowO0GMmHw6MZyOzAHjOpygN7e6ikMvFSQcg2ak5o2KHsw7j+f9yotTCxCVshDSCRL9udwpGrWaSbHFU402MPAZmWTeq+13PVyKAvlLV2x0Q8f41plSQ8OB7tDKGbxIGFNazu8cn3RnXVy/gOWtqWaTyRsMsrhYV512A5yDw7gp3ddnqCZDlAUMGvTRezJtbExh1MebTNCYYp7jmDYWGlj+kJscMyiR70ma52n7yORFutxZcVdTNthBI2N2zUaQaU=
+  on:
+    tags: true
+    repo: dfd/sktutor
+    condition: "$TOXENV == py36"
