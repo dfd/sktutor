@@ -21,7 +21,7 @@ test_requirements = [
 
 setup(
     name='sktutor',
-    version='0.1.0',
+    version='0.1.2',
     description="sktutor helps your machines learn.",
     long_description=readme + '\n\n' + history,
     author="Dave Decker",
