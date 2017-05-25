@@ -11,7 +11,7 @@ def mode(x):
     with the most occurances, then return the lowest value.
 
     :param x: data vector 
-    :type x: a `pandas Series`
+    :type x: pandas Series
     :rtype: the the most frequent value in the `pandas Series`
     """
 
