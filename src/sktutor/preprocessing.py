@@ -31,12 +31,12 @@ def mode(x):
 
 class ImputeByGroup(BaseEstimator, TransformerMixin):
     """Imputes Missing Values by Group with specified function
+
     :param impute_type: string representing the type of imputation to be
     performed. If a `group` parameter is given, it can be the name of any
     function which can be passed to the `agg` function of a pandas `GroupBy`
     object.  If a `group` paramter is not given, then only 'mean', 'median',
     and 'most_frequent' can be used.
-
     :type impute_type: string
     :param group: the column or a list of columns to group the `DataFrame`
     :type group: string or list
