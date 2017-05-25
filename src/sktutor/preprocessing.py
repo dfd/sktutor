@@ -8,9 +8,11 @@ import numpy as np
 
 def mode(x):
     """return the most frequent occurance.  If two or more values are tied
-    with the most occurances, then return the lowest value
+    with the most occurances, then return the lowest value.
 
-    :param x: a pandas Series
+    :param x: data vector 
+    :type x: a `pandas Series`
+    :rtype: the the most frequent value in the `pandas Series`
     """
 
     vc = x.value_counts()
