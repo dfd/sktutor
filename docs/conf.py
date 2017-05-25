@@ -79,7 +79,8 @@ release = sktutor.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'sktutor.rst']
+exclude_patterns = ['_build']
+#exclude_patterns = ['_build', 'sktutor.rst']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -160,7 +161,7 @@ html_static_path = ['_static']
 # html_additional_pages = {}
 
 # If false, no module index is generated.
-# html_domain_indices = True
+html_domain_indices = True
 
 # If false, no index is generated.
 # html_use_index = True
@@ -231,7 +232,7 @@ latex_documents = [
 # latex_appendices = []
 
 # If false, no module index is generated.
-# latex_domain_indices = True
+latex_domain_indices = True
 
 
 # -- Options for manual page output ------------------------------------
@@ -266,7 +267,7 @@ texinfo_documents = [
 # texinfo_appendices = []
 
 # If false, no module index is generated.
-# texinfo_domain_indices = True
+texinfo_domain_indices = True
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 # texinfo_show_urls = 'footnote'
