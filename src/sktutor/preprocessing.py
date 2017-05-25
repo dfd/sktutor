@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
-# from sklearn.pipeline import FeatureUnion
-# from sklearn.pipeline import Pipeline
 import numpy as np
 
 
 def mode(x):
-    """return the most frequent occurance.  If two or more values are tied
+    """Return the most frequent occurance.  If two or more values are tied
     with the most occurances, then return the lowest value.
 
-    :param x: data vector 
+    :param x: A data vector.
     :type x: pandas Series
-    :rtype: the the most frequent value in the `pandas Series`
+    :rtype: The the most frequent value in the `pandas Series`.
     """
 
     vc = x.value_counts()
@@ -38,9 +36,10 @@ class ImputeByGroup(BaseEstimator, TransformerMixin):
     is not given, then only 'mean', 'median', and 'most_frequent' can be used.
 
     :param impute_type:
-        string representing the type of imputation to be performed. 
+        The type of imputation to be performed.
     :type impute_type: string
-    :param group: the column or a list of columns to group the `DataFrame`
+    :param group:
+        The column or a list of columns to group the `pandas DataFrame`.
     :type group: string or list
     """
 
@@ -54,8 +53,9 @@ class ImputeByGroup(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         """fit the imputer on X
 
-        :param X: a pandas `DataFrame`
-        :rtype: returns self
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
         """
         if self.group:
             self.mapper = X.groupby(self.group).agg(self.impute_type).to_dict()
@@ -76,9 +76,12 @@ class ImputeByGroup(BaseEstimator, TransformerMixin):
         """get a value from the mapper, for a given column and a `pandas Series`
         representing a row of data.
 
-        :param x: a `pandas Series`
-        :param col: the name of the column to  impute a missing value
-        :rtype: value from self.mapper dictionary if found, np.nan otherwise
+        :param x: A row of data from a `DataFrame`.
+        :type x: pandas Series
+        :param col: The name of the column to impute a missing value.
+        :type col: string
+        :rtype:
+            The value from self.mapper dictionary if exists, np.nan otherwise.
         """
         try:
             return self.mapper[col][x[self.group]]
@@ -88,8 +91,9 @@ class ImputeByGroup(BaseEstimator, TransformerMixin):
     def transform(self, X):
         """Impute the eligible missing values in X
 
-        :param X: a `DataFrame` with missing values to be imputed
-        :rtype: a `DataFrame` with eligible missing values imputed
+        :param X: The input data with missing values to be imputed.
+        :type X: `pandas DataFrame`
+        :rtype: A `DataFrame` with eligible missing values imputed.
         """
         X = X.copy()
         if self.group:
