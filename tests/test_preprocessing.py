@@ -15,6 +15,7 @@ import pandas.util.testing as tm
 
 
 @pytest.mark.usefixtures("example_data")
+@pytest.mark.usefixtures("example_data2")
 class TestImputeByGroup(object):
     """Sample pytest test function with the pytest fixture as an argument.
     """
@@ -169,4 +170,48 @@ class TestImputeByGroup(object):
                     }
         expected = pd.DataFrame(exp_dict)
         result = ibg.transform(new_data)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_2groups_most_frequent(self, example_data2):
+        ibg = ImputeByGroup('most_frequent', ['b', 'c'])
+        ibg.fit(example_data2)
+        result = ibg.transform(example_data2)
+        exp_dict = {'a': [1, 2, 1, 4, 4, 4, 7, 8, 8, 8],
+                    'b': ['123', '123', '123',
+                          '123', '123', '789',
+                          '789', '789', '789', '789'],
+                    'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                    'd': ['a', 'a', 'a', 'e', 'e', 'f', 'f', 'h', 'j', 'j']
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_2groups_mean(self, example_data2):
+        ibg = ImputeByGroup('mean', ['b', 'c'])
+        ibg.fit(example_data2)
+        result = ibg.transform(example_data2)
+        exp_dict = {'a': [1, 2, 1.5, 4, 4, 4, 7, 8, 8, 8],
+                    'b': ['123', '123', '123',
+                          '123', '123', '789',
+                          '789', '789', '789', '789'],
+                    'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                    'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j',
+                          'j']
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_2groups_median(self, example_data2):
+        ibg = ImputeByGroup('median', ['b', 'c'])
+        ibg.fit(example_data2)
+        result = ibg.transform(example_data2)
+        exp_dict = {'a': [1, 2, 1.5, 4, 4, 4, 7, 8, 8, 8],
+                    'b': ['123', '123', '123',
+                          '123', '123', '789',
+                          '789', '789', '789', '789'],
+                    'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                    'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j',
+                          'j']
+                    }
+        expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)

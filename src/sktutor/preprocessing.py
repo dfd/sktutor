@@ -84,7 +84,13 @@ class ImputeByGroup(BaseEstimator, TransformerMixin):
             The value from self.mapper dictionary if exists, np.nan otherwise.
         """
         try:
-            return self.mapper[col][x[self.group]]
+            key = x[self.group]
+            if isinstance(key, pd.Series):
+                key = tuple(key)
+                # key = key.items()
+                print(key)
+                print(self.mapper[col][key])
+            return self.mapper[col][key]
         except KeyError:
             return np.nan
 

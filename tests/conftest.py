@@ -4,8 +4,7 @@ import pandas as pd
 
 @pytest.fixture
 def example_data():
-    """Sample pytest fixture.
-    See more at: http://doc.pytest.org/en/latest/fixture.html
+    """Sample data for grouping by 1 column
     """
     data_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
                  'b': ['123', '123', '123',
@@ -18,6 +17,21 @@ def example_data():
                        None],
                  'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
                  'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None]
+                 }
+    df = pd.DataFrame(data_dict)
+    return df
+
+
+@pytest.fixture
+def example_data2():
+    """Sample data for grouping by 2 columns
+    """
+    data_dict = {'a': [1, 2, None, None, 4, 4, 7, 8, None, 8],
+                 'b': ['123', '123', '123',
+                       '123', '123', '789',
+                       '789', '789', '789', '789'],
+                 'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                 'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j']
                  }
     df = pd.DataFrame(data_dict)
     return df
