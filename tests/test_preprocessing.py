@@ -9,7 +9,8 @@ Tests for `preprocessing` module.
 """
 
 import pytest
-from sktutor.preprocessing import GroupByImputer, MissingValueFiller
+from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
+                                   OverMissingThresholdDropper)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -240,6 +241,26 @@ class TestMissingValueFiller(object):
         exp_dict = {'a': [2, 2, 0, 0, 4, 4, 7, 8, 0, 8],
                     'c': [1, 2, 0, 4, 4, 4, 7, 9, 0, 9],
                     'e': [1, 2, 0, 0, 0, 0, 0, 0, 0, 0]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+
+@pytest.mark.usefixtures("example_data")
+class TestOverMissingThresholdDropper(object):
+    """Sample pytest test function with the pytest fixture as an argument.
+    """
+
+    def test_drop_20(self, example_data):
+        omtd = OverMissingThresholdDropper(.2)
+        omtd.fit(example_data)
+        result = omtd.transform(example_data)
+        exp_dict = {'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None]
                     }
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)

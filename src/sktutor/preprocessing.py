@@ -51,7 +51,7 @@ class GroupByImputer(BaseEstimator, TransformerMixin):
             self.impute_type = impute_type
 
     def fit(self, X, y=None):
-        """fit the imputer on X
+        """Fit the imputer on X
 
         :param X: The input data.
         :type X: pandas DataFrame
@@ -98,7 +98,7 @@ class GroupByImputer(BaseEstimator, TransformerMixin):
         """Impute the eligible missing values in X
 
         :param X: The input data with missing values to be imputed.
-        :type X: `pandas DataFrame`
+        :type X: pandas DataFrame
         :rtype: A `DataFrame` with eligible missing values imputed.
         """
         X = X.copy()
@@ -115,14 +115,14 @@ class MissingValueFiller(BaseEstimator, TransformerMixin):
     """Fill missing values with a specified value.  Should only be used with
     columns of similar dtypes.
 
-    :param value: the value to impute for missing factors
+    :param value: The value to impute for missing factors.
     """
 
     def __init__(self, value):
         self.value = value
 
     def fit(self, X, y=None):
-        """fit the imputer on X
+        """Fit the imputer on X.
 
         :param X: The input data.
         :type X: pandas DataFrame
@@ -131,11 +131,45 @@ class MissingValueFiller(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        """Impute the eligible missing values in X
+        """Impute the eligible missing values in X.
 
         :param X: The input data with missing values to be filled.
         :type X: `pandas DataFrame`
         :rtype: A `DataFrame` with eligible missing values filled.
         """
         X = X.fillna(self.value)
+        return X
+
+
+class OverMissingThresholdDropper(BaseEstimator, TransformerMixin):
+    """Drop columns with more missing data than a given threshold.
+
+    :param threshold: Maximum portion of missing data that is acceptable.
+    :type threshold: float
+    """
+
+    def __init__(self, threshold):
+        self.threshold = threshold
+
+    def fit(self, X, y=None):
+        """Fit the dropper on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        length = len(X)
+        na_counts = X.isnull().sum()
+        self.cols_to_drop = na_counts[
+            (na_counts > int(length*(self.threshold)))].index.tolist()
+        return self
+
+    def transform(self, X):
+        """Impute the eligible missing values in X.
+
+        :param X: The input data.
+        :type X: `pandas DataFrame`
+        :rtype: A `DataFrame` with columns dropped.
+        """
+        X = X.drop(self.cols_to_drop, axis=1)
         return X
