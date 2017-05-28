@@ -136,7 +136,7 @@ class MissingValueFiller(BaseEstimator, TransformerMixin):
         """Impute the eligible missing values in X.
 
         :param X: The input data with missing values to be filled.
-        :type X: ``pandas DataFrame``
+        :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with eligible missing values filled.
         """
         X = X.fillna(self.value)
@@ -174,7 +174,7 @@ class OverMissingThresholdDropper(BaseEstimator, TransformerMixin):
         """Impute the eligible missing values in X.
 
         :param X: The input data.
-        :type X: ``pandas DataFrame``
+        :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with columns dropped.
         """
         X = X.drop(self.cols_to_drop, axis=1)
@@ -241,7 +241,7 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
         """Replace the values in X with the values in the mapper.
 
         :param X: The input data.
-        :type X: ``pandas DataFrame``
+        :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with old values mapped to new values.
         """
         for col in self.mapper.keys():
@@ -298,7 +298,7 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
         """Limit the factors in X with the values in the factor_per_column.
 
         :param X: The input data.
-        :type X: ``pandas DataFrame``
+        :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with factors limited to the specifications.
         """
         for col in self.factors_per_column.keys():
@@ -342,7 +342,7 @@ class SingleValueAboveThresholdDropper(BaseEstimator, TransformerMixin):
         """Drop the columns in X with single values that exceed the threshold.
 
         :param X: The input data.
-        :type X: ``pandas DataFrame``
+        :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with columns dropped to the specifications.
         """
         X = X.drop(self.cols_to_drop, axis=1)
@@ -385,7 +385,7 @@ class SingleValueDropper(BaseEstimator, TransformerMixin):
         """Drop the columns in X with single non-missing values.
 
         :param X: The input data.
-        :type X: ``pandas DataFrame``
+        :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with columns dropper.
         """
         X = X.drop(self.cols_to_drop, axis=1)
