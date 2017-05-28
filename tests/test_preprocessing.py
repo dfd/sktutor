@@ -25,9 +25,9 @@ class TestGroupByImputer(object):
     """
 
     def test_groups_most_frequent(self, missing_data):
-        gbi = GroupByImputer('most_frequent', 'b')
-        gbi.fit(missing_data)
-        result = gbi.transform(missing_data)
+        prep = GroupByImputer('most_frequent', 'b')
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
         exp_dict = {'a': [2, 2, 2, None, 4, 4, 7, 8, 8, 8],
                     'b': ['123', '123', '123',
                           '234', '456', '456',
@@ -44,9 +44,9 @@ class TestGroupByImputer(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_groups_mean(self, missing_data):
-        gbi = GroupByImputer('mean', 'b')
-        gbi.fit(missing_data)
-        result = gbi.transform(missing_data)
+        prep = GroupByImputer('mean', 'b')
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
         exp_dict = {'a': [2, 2, 2, None, 4, 4, 7, 8, 7 + 2/3, 8],
                     'b': ['123', '123', '123',
                           '234', '456', '456',
@@ -63,9 +63,9 @@ class TestGroupByImputer(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_groups_median(self, missing_data):
-        gbi = GroupByImputer('median', 'b')
-        gbi.fit(missing_data)
-        result = gbi.transform(missing_data)
+        prep = GroupByImputer('median', 'b')
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
         exp_dict = {'a': [2, 2, 2, None, 4, 4, 7, 8, 8, 8],
                     'b': ['123', '123', '123',
                           '234', '456', '456',
@@ -82,9 +82,9 @@ class TestGroupByImputer(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_all_most_frequent(self, missing_data):
-        gbi = GroupByImputer('most_frequent')
-        gbi.fit(missing_data)
-        result = gbi.transform(missing_data)
+        prep = GroupByImputer('most_frequent')
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
         exp_dict = {'a': [2, 2, 2, 2, 4, 4, 7, 8, 2, 8],
                     'b': ['123', '123', '123',
                           '234', '456', '456',
@@ -100,9 +100,9 @@ class TestGroupByImputer(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_all_mean(self, missing_data):
-        gbi = GroupByImputer('mean')
-        gbi.fit(missing_data)
-        result = gbi.transform(missing_data)
+        prep = GroupByImputer('mean')
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
         exp_dict = {'a': [2, 2, 5, 5, 4, 4, 7, 8, 5, 8],
                     'b': ['123', '123', '123',
                           '234', '456', '456',
@@ -119,9 +119,9 @@ class TestGroupByImputer(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_all_median(self, missing_data):
-        gbi = GroupByImputer('median')
-        gbi.fit(missing_data)
-        result = gbi.transform(missing_data)
+        prep = GroupByImputer('median')
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
         exp_dict = {'a': [2, 2, 4, 4, 4, 4, 7, 8, 4, 8],
                     'b': ['123', '123', '123',
                           '234', '456', '456',
@@ -138,13 +138,13 @@ class TestGroupByImputer(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_value_error(self, missing_data):
-        gbi = GroupByImputer('stdev')
+        prep = GroupByImputer('stdev')
         with pytest.raises(ValueError):
-            gbi.fit(missing_data)
+            prep.fit(missing_data)
 
     def test_key_error(self, missing_data):
-        gbi = GroupByImputer('mean', 'b')
-        gbi.fit(missing_data)
+        prep = GroupByImputer('mean', 'b')
+        prep.fit(missing_data)
         exp_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
                     'b': ['123', '123', '123',
                           '987', '987', '456',
@@ -173,13 +173,13 @@ class TestGroupByImputer(object):
                     'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None]
                     }
         expected = pd.DataFrame(exp_dict)
-        result = gbi.transform(new_data)
+        result = prep.transform(new_data)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_2groups_most_frequent(self, missing_data2):
-        gbi = GroupByImputer('most_frequent', ['b', 'c'])
-        gbi.fit(missing_data2)
-        result = gbi.transform(missing_data2)
+        prep = GroupByImputer('most_frequent', ['b', 'c'])
+        prep.fit(missing_data2)
+        result = prep.transform(missing_data2)
         exp_dict = {'a': [1, 2, 1, 4, 4, 4, 7, 8, 8, 8],
                     'b': ['123', '123', '123',
                           '123', '123', '789',
@@ -191,9 +191,9 @@ class TestGroupByImputer(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_2groups_mean(self, missing_data2):
-        gbi = GroupByImputer('mean', ['b', 'c'])
-        gbi.fit(missing_data2)
-        result = gbi.transform(missing_data2)
+        prep = GroupByImputer('mean', ['b', 'c'])
+        prep.fit(missing_data2)
+        result = prep.transform(missing_data2)
         exp_dict = {'a': [1, 2, 1.5, 4, 4, 4, 7, 8, 8, 8],
                     'b': ['123', '123', '123',
                           '123', '123', '789',
@@ -206,9 +206,9 @@ class TestGroupByImputer(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_2groups_median(self, missing_data2):
-        gbi = GroupByImputer('median', ['b', 'c'])
-        gbi.fit(missing_data2)
-        result = gbi.transform(missing_data2)
+        prep = GroupByImputer('median', ['b', 'c'])
+        prep.fit(missing_data2)
+        result = prep.transform(missing_data2)
         exp_dict = {'a': [1, 2, 1.5, 4, 4, 4, 7, 8, 8, 8],
                     'b': ['123', '123', '123',
                           '123', '123', '789',
@@ -228,8 +228,8 @@ class TestMissingValueFiller(object):
     """
 
     def test_missing_factors(self, missing_data_factors):
-        mvf = MissingValueFiller('Missing')
-        result = mvf.fit_transform(missing_data_factors)
+        prep = MissingValueFiller('Missing')
+        result = prep.fit_transform(missing_data_factors)
         exp_dict = {'c': ['a', 'Missing', 'a', 'b', 'b', 'Missing', 'c', 'a',
                           'a', 'c'],
                     'd': ['a', 'a', 'Missing', 'Missing', 'e', 'f', 'Missing',
@@ -239,8 +239,8 @@ class TestMissingValueFiller(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_missing_numeric(self, missing_data_numeric):
-        mvf = MissingValueFiller(0)
-        result = mvf.fit_transform(missing_data_numeric)
+        prep = MissingValueFiller(0)
+        result = prep.fit_transform(missing_data_numeric)
         exp_dict = {'a': [2, 2, 0, 0, 4, 4, 7, 8, 0, 8],
                     'c': [1, 2, 0, 4, 4, 4, 7, 9, 0, 9],
                     'e': [1, 2, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -255,9 +255,9 @@ class TestOverMissingThresholdDropper(object):
     """
 
     def test_drop_20(self, missing_data):
-        omtd = OverMissingThresholdDropper(.2)
-        omtd.fit(missing_data)
-        result = omtd.transform(missing_data)
+        prep = OverMissingThresholdDropper(.2)
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
         exp_dict = {'b': ['123', '123', '123',
                           '234', '456', '456',
                           '789', '789', '789', '789'],
@@ -290,9 +290,9 @@ class TestValueReplacer(object):
                         'f': 'x', 'g': 'w', 'h': 'w', 'j': 'w'
                         }
                   }
-        vr = ValueReplacer(mapper)
-        vr.fit(full_data_factors)
-        result = vr.transform(full_data_factors)
+        prep = ValueReplacer(mapper)
+        prep.fit(full_data_factors)
+        result = prep.transform(full_data_factors)
         exp_dict = {'c': ['z', 'z', 'z', 'z', 'z', 'c', 'c', 'z', 'z', 'c'],
                     'd': ['z', 'z', 'y', 'y', 'x', 'x', 'w', 'w', 'w', 'w']
                     }
@@ -307,9 +307,9 @@ class TestValueReplacer(object):
                             'w': ['g', 'h', 'j']
                             }
                       }
-        vr = ValueReplacer(inverse_mapper=inv_mapper)
-        vr.fit(full_data_factors)
-        result = vr.transform(full_data_factors)
+        prep = ValueReplacer(inverse_mapper=inv_mapper)
+        prep.fit(full_data_factors)
+        result = prep.transform(full_data_factors)
         exp_dict = {'c': ['z', 'z', 'z', 'z', 'z', 'c', 'c', 'z', 'z', 'c'],
                     'd': ['z', 'z', 'y', 'y', 'x', 'x', 'w', 'w', 'w', 'w']
                     }
@@ -322,9 +322,9 @@ class TestValueReplacer(object):
                         'f': 'x', 'g': 'w', 'h': 'w', 'j': 'w'
                         }
                   }
-        vr = ValueReplacer(mapper)
+        prep = ValueReplacer(mapper)
         with pytest.raises(ValueError):
-            vr.fit(full_data_factors)
+            prep.fit(full_data_factors)
 
     def test_2_mappers_value_error(self):
         mapper = {'c': {'a': 'z', 'b': 'z'},
@@ -340,13 +340,13 @@ class TestValueReplacer(object):
                             }
                       }
         with pytest.raises(ValueError):
-            vr = ValueReplacer(mapper=mapper, inverse_mapper=inv_mapper)
-            vr
+            prep = ValueReplacer(mapper=mapper, inverse_mapper=inv_mapper)
+            prep
 
     def test_no_mappers_value_error(self):
         with pytest.raises(ValueError):
-            vr = ValueReplacer()
-            vr
+            prep = ValueReplacer()
+            prep
 
 
 @pytest.mark.usefixtures("missing_data_factors")
@@ -362,9 +362,9 @@ class TestFactorLimiter(object):
                          'default': 'd'
                          }
                    }
-        fl = FactorLimiter(factors)
-        fl.fit(missing_data_factors)
-        result = fl.transform(missing_data_factors)
+        prep = FactorLimiter(factors)
+        prep.fit(missing_data_factors)
+        result = prep.transform(missing_data_factors)
         exp_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'a', 'a', 'a', 'a', 'a'],
                     'd': ['a', 'a', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd']
                     }
