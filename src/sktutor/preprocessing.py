@@ -243,3 +243,61 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
         for col in self.mapper.keys():
             X[col] = X[col].apply(lambda x: self.mapper[col].get(x, x))
         return X
+
+
+class FactorLimiter(BaseEstimator, TransformerMixin):
+    """For each named column, it limits factors to a list of acceptable values.
+    Non-comforming factors, including missing values, are replaced by a default
+
+    :param factors_per_column: dictionary mapping column name keys to a
+                               dictionary with a list of acceptable factor
+                               values and a default factor value for
+                               non-conforming values
+    :type factors_per_column: dictionary
+
+    ``factors_per_column`` takes the form::
+
+       {'column_name': {'factors': ['value1', 'value2', 'value3'],
+                        'default': 'value1'},
+                        }
+        }
+    """
+
+    def __init__(self, factors_per_column=None):
+        self.factors_per_column = factors_per_column
+
+    def fit(self, X, y=None):
+        """Fit the factor limiter on X.  Checks that all columns in
+        factors_per_column are in present in the DataFrame.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        if len(set(self.factors_per_column.keys()) - set(X.columns)) > 0:
+            raise ValueError("factors_per_column contains keys not found in \
+            DataFrame columns.")
+        return self
+
+    def _conform_to_factors(self, x, col):
+        """Helper function used to force conformity to factors_per_column
+        :param x: value to be evaluated
+        :param col: name of column to which x belongs
+        :type col: string
+        """
+        if x in self.factors_per_column[col]['factors']:
+            return x
+        else:
+            return self.factors_per_column[col]['default']
+
+    def transform(self, X):
+        """Limit the factors in X with the values in the factor_per_column.
+
+        :param X: The input data.
+        :type X: ``pandas DataFrame``
+        :rtype: A ``DataFrame`` with factors limited to the specifications.
+        """
+        for col in self.factors_per_column.keys():
+            X[col] = X[col].apply(
+                lambda x: self._conform_to_factors(x, col))
+        return X

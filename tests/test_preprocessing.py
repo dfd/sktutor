@@ -11,7 +11,7 @@ Tests for `preprocessing` module.
 import pytest
 from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    OverMissingThresholdDropper,
-                                   ValueReplacer)
+                                   ValueReplacer, FactorLimiter)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -335,3 +335,38 @@ class TestValueReplacer(object):
         with pytest.raises(ValueError):
             vr = ValueReplacer()
             vr
+
+
+@pytest.mark.usefixtures("missing_data_factors")
+class TestFactorLimiter(object):
+    """Test the FactorLimiter class
+    """
+
+    def test_limiter(self, missing_data_factors):
+        factors = {'c': {'factors': ['a', 'b'],
+                         'default': 'a'
+                         },
+                   'd': {'factors': ['a', 'b', 'c', 'd'],
+                         'default': 'd'
+                         }
+                   }
+        fl = FactorLimiter(factors)
+        fl.fit(missing_data_factors)
+        result = fl.transform(missing_data_factors)
+        exp_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'a', 'a', 'a', 'a', 'a'],
+                    'd': ['a', 'a', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd']
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_extra_column_value_error(self, missing_data_factors):
+        factors = {'c': {'factors': ['a', 'b'],
+                         'default': 'a'
+                         },
+                   'e': {'factors': ['a', 'b', 'c', 'd'],
+                         'default': 'd'
+                         }
+                   }
+        fl = FactorLimiter(factors)
+        with pytest.raises(ValueError):
+            fl.fit(missing_data_factors)
