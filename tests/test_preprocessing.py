@@ -11,7 +11,8 @@ Tests for `preprocessing` module.
 import pytest
 from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    OverMissingThresholdDropper,
-                                   ValueReplacer, FactorLimiter)
+                                   ValueReplacer, FactorLimiter,
+                                   SingleValueAboveThresholdDropper)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -266,6 +267,16 @@ class TestOverMissingThresholdDropper(object):
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
+    def test_threshold_high_value_error(self, missing_data):
+        with pytest.raises(ValueError):
+            svatd = OverMissingThresholdDropper(1.5)
+            svatd
+
+    def test_threshold_low_value_error(self, missing_data):
+        with pytest.raises(ValueError):
+            svatd = OverMissingThresholdDropper(-1)
+            svatd
+
 
 @pytest.mark.usefixtures("full_data_factors")
 class TestValueReplacer(object):
@@ -370,3 +381,53 @@ class TestFactorLimiter(object):
         fl = FactorLimiter(factors)
         with pytest.raises(ValueError):
             fl.fit(missing_data_factors)
+
+
+@pytest.mark.usefixtures("missing_data")
+class TestSingleValueAboveThresholdDropper(object):
+    """
+    """
+
+    def test_drop_70_with_na(self, missing_data):
+        prep = SingleValueAboveThresholdDropper(.7, dropna=False)
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
+        exp_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+                    'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j']
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_drop_70_without_na(self, missing_data):
+        prep = SingleValueAboveThresholdDropper(.7, dropna=True)
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
+        exp_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+                    'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j',
+                          'j'],
+                    'e': [1, 2, None, None, None, None, None, None, None,
+                          None],
+                    'f': ['a', 'b', None, None, None, None, None, None, None,
+                          None],
+
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_threshold_high_value_error(self, missing_data):
+        with pytest.raises(ValueError):
+            prep = SingleValueAboveThresholdDropper(1.5)
+            prep
+
+    def test_threshold_low_value_error(self, missing_data):
+        with pytest.raises(ValueError):
+            prep = SingleValueAboveThresholdDropper(-1)
+            prep

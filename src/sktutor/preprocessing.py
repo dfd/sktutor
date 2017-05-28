@@ -146,12 +146,16 @@ class MissingValueFiller(BaseEstimator, TransformerMixin):
 class OverMissingThresholdDropper(BaseEstimator, TransformerMixin):
     """Drop columns with more missing data than a given threshold.
 
-    :param threshold: Maximum portion of missing data that is acceptable.
+    :param threshold: Maximum portion of missing data that is acceptable.  Must
+                      be within the interval [0,1]
     :type threshold: float
     """
 
     def __init__(self, threshold):
-        self.threshold = threshold
+        if threshold > 1 or threshold < 0:
+            raise ValueError("threshold must be within [0,1]")
+        else:
+            self.threshold = threshold
 
     def fit(self, X, y=None):
         """Fit the dropper on X.
@@ -300,4 +304,44 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
         for col in self.factors_per_column.keys():
             X[col] = X[col].apply(
                 lambda x: self._conform_to_factors(x, col))
+        return X
+
+
+class SingleValueAboveThresholdDropper(BaseEstimator, TransformerMixin):
+    """Removes columns with a single value representing a higher percentage
+    of values than a given threshold
+
+    :param threshold: percentage of single value in a column to be removed
+    :type threshold: float
+    """
+
+    def __init__(self, threshold=1, dropna=True):
+        if threshold > 1 or threshold < 0:
+            raise ValueError("threshold must be within [0,1]")
+        else:
+            self.threshold = threshold
+        self.dropna = dropna
+
+    def fit(self, X, y=None):
+        """Fit the dropper on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        length = len(X)
+        val_counts = X.apply(lambda x:
+                             x.value_counts(dropna=self.dropna).iloc[0])
+        self.cols_to_drop = val_counts[
+            (val_counts >= int(length*(self.threshold)))].index.tolist()
+        return self
+
+    def transform(self, X):
+        """Drop the columns in X with single values that exceed the threshold.
+
+        :param X: The input data.
+        :type X: ``pandas DataFrame``
+        :rtype: A ``DataFrame`` with columns dropped to the specifications.
+        """
+        X = X.drop(self.cols_to_drop, axis=1)
         return X
