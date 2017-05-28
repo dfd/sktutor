@@ -313,6 +313,8 @@ class SingleValueAboveThresholdDropper(BaseEstimator, TransformerMixin):
 
     :param threshold: percentage of single value in a column to be removed
     :type threshold: float
+    :param dropna: If True, do not consider NaN as a value
+    :type dropna: boolean
     """
 
     def __init__(self, threshold=1, dropna=True):
@@ -342,6 +344,49 @@ class SingleValueAboveThresholdDropper(BaseEstimator, TransformerMixin):
         :param X: The input data.
         :type X: ``pandas DataFrame``
         :rtype: A ``DataFrame`` with columns dropped to the specifications.
+        """
+        X = X.drop(self.cols_to_drop, axis=1)
+        return X
+
+
+class SingleValueDropper(BaseEstimator, TransformerMixin):
+    """Drop columns with only one unique value
+
+    :param dropna: If True, do not consider NaN as a value
+    :type dropna: boolean
+    """
+
+    def __init__(self, dropna=True):
+        self.dropna = dropna
+
+    def _unique_values(self, x):
+        z = x.unique().tolist()
+        if self.dropna and x.isnull().sum() > 0:
+            print(z)
+            if None in z:
+                z.remove(None)
+            if np.nan in z:
+                z.remove(np.nan)
+        return len(z)
+
+    def fit(self, X, y=None):
+        """Fit the dropper on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        val_counts = X.apply(self._unique_values, axis=0)
+        print(val_counts)
+        self.cols_to_drop = val_counts[(val_counts <= 1)].index.tolist()
+        return self
+
+    def transform(self, X):
+        """Drop the columns in X with single non-missing values.
+
+        :param X: The input data.
+        :type X: ``pandas DataFrame``
+        :rtype: A ``DataFrame`` with columns dropper.
         """
         X = X.drop(self.cols_to_drop, axis=1)
         return X

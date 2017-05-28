@@ -69,3 +69,23 @@ def full_data_factors():
                  }
     df = pd.DataFrame(data_dict)
     return df
+
+
+@pytest.fixture
+def single_values_data():
+    """Sample data for grouping by 1 column
+    """
+    data_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                 'b': ['123', '123', '123',
+                       '234', '456', '456',
+                       '789', '789', '789', '789'],
+                 'c': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                 'd': [1, 1, 1, 1, 1, 1, 1, 1, 1, None],
+                 'e': [1, 2, None, None, None, None, None, None, None, None],
+                 'f': [None, None, None, None, None, None, None, None, None,
+                       None],
+                 'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None],
+                 'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a']
+                 }
+    df = pd.DataFrame(data_dict)
+    return df

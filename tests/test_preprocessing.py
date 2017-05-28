@@ -12,7 +12,8 @@ import pytest
 from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    OverMissingThresholdDropper,
                                    ValueReplacer, FactorLimiter,
-                                   SingleValueAboveThresholdDropper)
+                                   SingleValueAboveThresholdDropper,
+                                   SingleValueDropper)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -431,3 +432,39 @@ class TestSingleValueAboveThresholdDropper(object):
         with pytest.raises(ValueError):
             prep = SingleValueAboveThresholdDropper(-1)
             prep
+
+
+@pytest.mark.usefixtures("single_values_data")
+class TestSingleValueDropper(object):
+    """
+    """
+
+    def test_without_na(self, single_values_data):
+        prep = SingleValueDropper(dropna=True)
+        prep.fit(single_values_data)
+        result = prep.transform(single_values_data)
+        exp_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'e': [1, 2, None, None, None, None, None, None, None,
+                          None]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_with_na(self, single_values_data):
+        prep = SingleValueDropper(dropna=False)
+        prep.fit(single_values_data)
+        result = prep.transform(single_values_data)
+        exp_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'd': [1, 1, 1, 1, 1, 1, 1, 1, 1, None],
+                    'e': [1, 2, None, None, None, None, None, None, None,
+                          None],
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
