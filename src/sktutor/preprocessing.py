@@ -10,7 +10,7 @@ def mode(x):
 
     :param x: A data vector.
     :type x: pandas Series
-    :rtype: The the most frequent value in the `pandas Series`.
+    :rtype: The the most frequent value in the ``pandas Series``.
     """
 
     vc = x.value_counts()
@@ -30,17 +30,19 @@ def mode(x):
 
 
 class GroupByImputer(BaseEstimator, TransformerMixin):
-    """Imputes Missing Values by Group with specified function. If a `group`
+    """Imputes Missing Values by Group with specified function. If a ``group``
     parameter is given, it can be the name of any function which can be passed
-    to the `agg` function of a pandas `GroupBy` object.  If a `group` paramter
-    is not given, then only 'mean', 'median', and 'most_frequent' can be used.
+    to the ``agg`` function of a pandas ``GroupBy`` object.  If a ``group``
+    paramter is not given, then only 'mean', 'median', and 'most_frequent'
+    can be used.
+
 
     :param impute_type:
         The type of imputation to be performed.
     :type impute_type: string
     :param group:
-        The column or a list of columns to group the `pandas DataFrame`.
-    :type group: string or list
+        The column or a list of columns to group the ``pandas DataFrame``.
+    :type group: string or list of strings
     """
 
     def __init__(self, impute_type, group=None):
@@ -73,10 +75,10 @@ class GroupByImputer(BaseEstimator, TransformerMixin):
         return self
 
     def _get_value_from_map(self, x, col):
-        """get a value from the mapper, for a given column and a `pandas Series`
+        """get a value from the mapper, for a given column and a ``pandas Series``
         representing a row of data.
 
-        :param x: A row of data from a `DataFrame`.
+        :param x: A row of data from a ``DataFrame``.
         :type x: pandas Series
         :param col: The name of the column to impute a missing value.
         :type col: string
@@ -99,7 +101,7 @@ class GroupByImputer(BaseEstimator, TransformerMixin):
 
         :param X: The input data with missing values to be imputed.
         :type X: pandas DataFrame
-        :rtype: A `DataFrame` with eligible missing values imputed.
+        :rtype: A ``DataFrame`` with eligible missing values imputed.
         """
         X = X.copy()
         if self.group:
@@ -134,8 +136,8 @@ class MissingValueFiller(BaseEstimator, TransformerMixin):
         """Impute the eligible missing values in X.
 
         :param X: The input data with missing values to be filled.
-        :type X: `pandas DataFrame`
-        :rtype: A `DataFrame` with eligible missing values filled.
+        :type X: ``pandas DataFrame``
+        :rtype: A ``DataFrame`` with eligible missing values filled.
         """
         X = X.fillna(self.value)
         return X
@@ -168,8 +170,76 @@ class OverMissingThresholdDropper(BaseEstimator, TransformerMixin):
         """Impute the eligible missing values in X.
 
         :param X: The input data.
-        :type X: `pandas DataFrame`
-        :rtype: A `DataFrame` with columns dropped.
+        :type X: ``pandas DataFrame``
+        :rtype: A ``DataFrame`` with columns dropped.
         """
         X = X.drop(self.cols_to_drop, axis=1)
+        return X
+
+
+class ValueReplacer(BaseEstimator, TransformerMixin):
+    """Replaces Values in each column according to a nested dictionary.
+    ``inverse_mapper`` is probably more intuitive for when one value replaces
+    many values.
+
+    :param mapper: Nested dictionary with columns mapping to dictionaries
+                   that map old values to new values.
+    :type mapper: dictionary
+    :param inverse_mapper: Nested dictionary with columns mapping to
+                           dictionaries that map new values to a list of old
+                           values
+    :type inverse_mapper: dictionary
+
+    ``mapper`` takes the form::
+
+       {'column_name': {'old_value1': 'new_value1',
+                        'old_value2': 'new_value1'},
+                        'old_value3': 'new_value2'}
+        }
+
+    while ``inverse_mapper`` takes the form::
+
+       {'column_name': {'new_value1': ['old_value1', 'old_value2']},
+                       {'new_value2': ['old_value1']}
+        }
+    """
+
+    def __init__(self, mapper=None, inverse_mapper=None):
+        if inverse_mapper and mapper:
+            raise ValueError("Cannot use both a mapper and inverse_mapper.")
+        elif inverse_mapper:
+            mapper = {}
+            for k, d in inverse_mapper.items():
+                map2 = {}
+                for key, value in d.items():
+                    for string in value:
+                        map2[string] = key
+                mapper[k] = map2
+        elif not mapper:
+            raise ValueError("Must initialize with either mapper or \
+                             inverse_mapper.")
+        self.mapper = mapper
+
+    def fit(self, X, y=None):
+        """Fit the value replacer on X.  Checks that all columns in mapper are
+        in present in the DataFrame.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        if len(set(self.mapper.keys()) - set(X.columns)) > 0:
+            raise ValueError("Mapper contains keys not found in DataFrame \
+                             columns.")
+        return self
+
+    def transform(self, X):
+        """Replace the values in X with the values in the mapper.
+
+        :param X: The input data.
+        :type X: ``pandas DataFrame``
+        :rtype: A ``DataFrame`` with old values mapped to new values.
+        """
+        for col in self.mapper.keys():
+            X[col] = X[col].apply(lambda x: self.mapper[col].get(x, x))
         return X
