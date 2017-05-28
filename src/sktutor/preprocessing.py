@@ -29,7 +29,7 @@ def mode(x):
         return None
 
 
-class ImputeByGroup(BaseEstimator, TransformerMixin):
+class GroupByImputer(BaseEstimator, TransformerMixin):
     """Imputes Missing Values by Group with specified function. If a `group`
     parameter is given, it can be the name of any function which can be passed
     to the `agg` function of a pandas `GroupBy` object.  If a `group` paramter
@@ -108,4 +108,34 @@ class ImputeByGroup(BaseEstimator, TransformerMixin):
                     lambda x: self._get_value_from_map(x, col), axis=1))
         else:
             X = X.fillna(pd.Series(self.mapper))
+        return X
+
+
+class MissingValueFiller(BaseEstimator, TransformerMixin):
+    """Fill missing values with a specified value.  Should only be used with
+    columns of similar dtypes.
+
+    :param value: the value to impute for missing factors
+    """
+
+    def __init__(self, value):
+        self.value = value
+
+    def fit(self, X, y=None):
+        """fit the imputer on X
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        return self
+
+    def transform(self, X):
+        """Impute the eligible missing values in X
+
+        :param X: The input data with missing values to be filled.
+        :type X: `pandas DataFrame`
+        :rtype: A `DataFrame` with eligible missing values filled.
+        """
+        X = X.fillna(self.value)
         return X
