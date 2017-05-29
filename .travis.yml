@@ -28,6 +28,7 @@ notifications:
   email: true
 
 deploy:
+  skip_upload_docs: true
   provider: pypi
   distributions: sdist bdist_wheel
   user: dfd
