@@ -411,14 +411,14 @@ class ColumnExtractor(BaseEstimator, TransformerMixin):
                              data.")
         return self
 
-    def transform(self, data, **transform_params):
+    def transform(self, X, **transform_params):
         """Extract the specified columns in X.
 
         :param X: The input data.
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with specified columns.
         """
-        return pd.DataFrame(data[self.col])
+        return pd.DataFrame(X[self.col])
 
 
 class ColumnDropper(BaseEstimator, TransformerMixin):
@@ -442,11 +442,58 @@ class ColumnDropper(BaseEstimator, TransformerMixin):
                              data.")
         return self
 
-    def transform(self, data, **transform_params):
+    def transform(self, X, **transform_params):
         """Drop the specified columns in X.
 
         :param X: The input data.
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` without specified columns.
         """
-        return data.drop(self.col, axis=1)
+        return X.drop(self.col, axis=1)
+
+
+class DummyCreator(BaseEstimator, TransformerMixin):
+    """Create dummy variables from factors.
+
+    :param dummy_na: Add a column to indicate NaNs, if False NaNs are ignored.
+    :type dummy_na: boolean
+    :param drop_first: Whether to get k-1 dummies out of k categorical levels
+                       by removing the first level.
+    :type drop_first: boolean
+    """
+
+    def __init__(self, dummy_na=False, drop_first=False):
+        self.dummy_na = dummy_na
+        self.drop_first = drop_first
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the dummy creator on X. Retains a record of columns produced \
+        with the fitting data.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        X = pd.get_dummies(X, dummy_na=self.dummy_na,
+                           drop_first=self.drop_first)
+        self.columns = X.columns
+        return self
+
+    def transform(self, X, **transform_params):
+        """Create dummies for the columns in X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with dummy variables.
+        """
+        X = pd.get_dummies(X, dummy_na=self.dummy_na,
+                           drop_first=self.drop_first)
+        column_set = set(self.columns)
+        data_column_set = set(X.columns)
+        if column_set != data_column_set:
+            # ensure same column order
+            for col in self.columns:
+                if col not in data_column_set:
+                    X[col] = 0
+        X = X[self.columns]
+        return X
