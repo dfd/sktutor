@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
-__author__ = """Dave Decker"""
-__email__ = 'dave.decker@gmail.com'
-__version__ = '0.1.5'
+from sktutor.__about__ import (
+    __author__, __copyright__, __email__, __license__, __summary__, __title__,
+    __uri__, __version__
+)
+
