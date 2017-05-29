@@ -564,7 +564,8 @@ class TestDummyCreator(object):
 
     def test_drop_first_dummies(self, full_data_factors):
         # Test dropping first dummies for each column.
-        prep = DummyCreator(drop_first=True)
+        kwargs = {'drop_first': True}
+        prep = DummyCreator(**kwargs)
         prep.fit(full_data_factors)
         result = prep.transform(full_data_factors)
         exp_dict = {'c_b': [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
@@ -583,7 +584,7 @@ class TestDummyCreator(object):
 
     def test_dummy_na_false_dummies(self, missing_data_factors):
         # Test not creating dummies for NaNs.
-        prep = DummyCreator(dummy_na=False)
+        prep = DummyCreator()
         prep.fit(missing_data_factors)
         result = prep.transform(missing_data_factors)
         exp_dict = {'c_a': [1, 0, 1, 0, 0, 0, 0, 1, 1, 0],
@@ -600,7 +601,8 @@ class TestDummyCreator(object):
 
     def test_dummy_na_true_dummies(self, missing_data_factors):
         # Test creating dummies for NaNs.
-        prep = DummyCreator(dummy_na=True)
+        kwargs = {'dummy_na': True}
+        prep = DummyCreator(**kwargs)
         prep.fit(missing_data_factors)
         result = prep.transform(missing_data_factors)
         exp_dict = {'c_a': [1, 0, 1, 0, 0, 0, 0, 1, 1, 0],
