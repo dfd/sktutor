@@ -13,7 +13,8 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    OverMissingThresholdDropper,
                                    ValueReplacer, FactorLimiter,
                                    SingleValueAboveThresholdDropper,
-                                   SingleValueDropper, ColumnExtractor)
+                                   SingleValueDropper, ColumnExtractor,
+                                   ColumnDropper)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -490,5 +491,29 @@ class TestColumnExtractor(object):
 
     def test_threshold_high_value_error(self, missing_data):
         prep = ColumnExtractor(['a', 'b', 'z'])
+        with pytest.raises(ValueError):
+            prep.fit(missing_data)
+
+
+@pytest.mark.usefixtures("missing_data")
+class TestColumnDropper(object):
+    """
+    """
+
+    def test_extraction(self, missing_data):
+        prep = ColumnDropper(['d', 'e', 'f', 'g', 'h'])
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
+        exp_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_threshold_high_value_error(self, missing_data):
+        prep = ColumnDropper(['a', 'b', 'z'])
         with pytest.raises(ValueError):
             prep.fit(missing_data)

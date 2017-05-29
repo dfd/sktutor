@@ -419,3 +419,34 @@ class ColumnExtractor(BaseEstimator, TransformerMixin):
         :rtype: A ``DataFrame`` with specified columns.
         """
         return pd.DataFrame(data[self.col])
+
+
+class ColumnDropper(BaseEstimator, TransformerMixin):
+    """Drop a list of columns from a ``DataFrame``.
+
+    :param col: A list of columns to extract from the ``DataFrame``
+    :type col: list of strings
+    """
+    def __init__(self, col):
+        self.col = col
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the dropper on X. Checks that all columns are in X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        if len(set(self.col) - set(X.columns)) > 0:
+            raise ValueError("Column list contains columns not found in input \
+                             data.")
+        return self
+
+    def transform(self, data, **transform_params):
+        """Drop the specified columns in X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` without specified columns.
+        """
+        return data.drop(self.col, axis=1)
