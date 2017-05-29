@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
-import sktutor
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -22,7 +21,7 @@ test_requirements = [
 
 setup(
     name='sktutor',
-    version=sktutor.__version__,
+    version='0.1.5',
     description="sktutor helps your machines learn.",
     long_description=readme + '\n\n' + history,
     author="Dave Decker",
