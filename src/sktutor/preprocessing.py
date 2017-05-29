@@ -10,7 +10,7 @@ def mode(x):
 
     :param x: A data vector.
     :type x: pandas Series
-    :rtype: The the most frequent value in the ``pandas Series``.
+    :rtype: The the most frequent value in x.
     """
 
     vc = x.value_counts()
@@ -226,7 +226,7 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y=None):
         """Fit the value replacer on X.  Checks that all columns in mapper are
-        in present in the DataFrame.
+        in present in X.
 
         :param X: The input data.
         :type X: pandas DataFrame
@@ -272,7 +272,7 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y=None):
         """Fit the factor limiter on X.  Checks that all columns in
-        factors_per_column are in present in the DataFrame.
+        factors_per_column are in present in X.
 
         :param X: The input data.
         :type X: pandas DataFrame
@@ -376,7 +376,6 @@ class SingleValueDropper(BaseEstimator, TransformerMixin):
         :rtype: Returns self.
         """
         val_counts = X.apply(self._unique_values, axis=0)
-        print(val_counts)
         self.cols_to_drop = val_counts[(val_counts <= 1)].index.tolist()
         return self
 
@@ -389,3 +388,34 @@ class SingleValueDropper(BaseEstimator, TransformerMixin):
         """
         X = X.drop(self.cols_to_drop, axis=1)
         return X
+
+
+class ColumnExtractor(BaseEstimator, TransformerMixin):
+    """Extract a list of columns from a ``DataFrame``.
+
+    :param col: A list of columns to extract from the ``DataFrame``
+    :type col: list of strings
+    """
+    def __init__(self, col):
+        self.col = col
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the extractor on X. Checks that all columns are in X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        if len(set(self.col) - set(X.columns)) > 0:
+            raise ValueError("Column list contains columns not found in input \
+                             data.")
+        return self
+
+    def transform(self, data, **transform_params):
+        """Extract the specified columns in X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
+        return pd.DataFrame(data[self.col])
