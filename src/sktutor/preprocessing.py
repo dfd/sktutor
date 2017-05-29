@@ -360,14 +360,13 @@ class SingleValueDropper(BaseEstimator, TransformerMixin):
         self.dropna = dropna
 
     def _unique_values(self, x):
-        z = x.unique().tolist()
+        values = x.unique().tolist()
         if self.dropna and x.isnull().sum() > 0:
-            print(z)
-            if None in z:
-                z.remove(None)
-            if np.nan in z:
-                z.remove(np.nan)
-        return len(z)
+            if None in values:
+                values.remove(None)
+            if np.nan in values:
+                values.remove(np.nan)
+        return len(values)
 
     def fit(self, X, y=None):
         """Fit the dropper on X.
