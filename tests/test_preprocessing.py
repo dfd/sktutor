@@ -14,7 +14,8 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    ValueReplacer, FactorLimiter,
                                    SingleValueAboveThresholdDropper,
                                    SingleValueDropper, ColumnExtractor,
-                                   ColumnDropper, DummyCreator)
+                                   ColumnDropper, DummyCreator,
+                                   OrderChecker)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -564,7 +565,8 @@ class TestDummyCreator(object):
 
     def test_drop_first_dummies(self, full_data_factors):
         # Test dropping first dummies for each column.
-        prep = DummyCreator(drop_first=True)
+        kwargs = {'drop_first': True}
+        prep = DummyCreator(**kwargs)
         prep.fit(full_data_factors)
         result = prep.transform(full_data_factors)
         exp_dict = {'c_b': [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
@@ -583,7 +585,7 @@ class TestDummyCreator(object):
 
     def test_dummy_na_false_dummies(self, missing_data_factors):
         # Test not creating dummies for NaNs.
-        prep = DummyCreator(dummy_na=False)
+        prep = DummyCreator()
         prep.fit(missing_data_factors)
         result = prep.transform(missing_data_factors)
         exp_dict = {'c_a': [1, 0, 1, 0, 0, 0, 0, 1, 1, 0],
@@ -600,7 +602,8 @@ class TestDummyCreator(object):
 
     def test_dummy_na_true_dummies(self, missing_data_factors):
         # Test creating dummies for NaNs.
-        prep = DummyCreator(dummy_na=True)
+        kwargs = {'dummy_na': True}
+        prep = DummyCreator(**kwargs)
         prep.fit(missing_data_factors)
         result = prep.transform(missing_data_factors)
         exp_dict = {'c_a': [1, 0, 1, 0, 0, 0, 0, 1, 1, 0],
@@ -642,3 +645,44 @@ class TestDummyCreator(object):
                     }
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)
+
+
+@pytest.mark.usefixtures("full_data_factors")
+class TestOrderChecker(object):
+
+    def test_order(self, full_data_factors):
+        # Test extraction of columns from a DataFrame
+        prep = OrderChecker()
+        prep.fit(full_data_factors)
+        new_dict = {'d': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j'],
+                    'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c']
+                    }
+        new_data = pd.DataFrame(new_dict)
+        result = prep.transform(new_data)
+        exp_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                    'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_missing_columns_error(self, full_data_factors):
+        # Test throwing an error when the new data is missing columns
+        prep = OrderChecker()
+        prep.fit(full_data_factors)
+        new_dict = {'d': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+                    }
+        new_data = pd.DataFrame(new_dict)
+        with pytest.raises(ValueError):
+            prep.transform(new_data)
+
+    def test_new_columns_error(self, full_data_factors):
+        # Test throwing an error when the new data is missing columns
+        prep = OrderChecker()
+        prep.fit(full_data_factors)
+        new_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                    'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j'],
+                    'e': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+                    }
+        new_data = pd.DataFrame(new_dict)
+        with pytest.raises(ValueError):
+            prep.transform(new_data)

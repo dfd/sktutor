@@ -2,6 +2,17 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
+import os
+import sys
+
+base_dir = os.path.dirname(__file__)
+src_dir = os.path.join(base_dir, "src")
+
+sys.path.insert(0, src_dir)
+
+about = {}
+with open(os.path.join(src_dir, "sktutor", "__about__.py")) as f:
+    exec(f.read(), about)
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -20,18 +31,18 @@ test_requirements = [
 ]
 
 setup(
-    name='sktutor',
-    version='0.1.5',
-    description="sktutor helps your machines learn.",
+    name=about['__title__'],
+    version=about['__version__'],
+    description=about['__summary__'],
     long_description=readme + '\n\n' + history,
-    author="Dave Decker",
-    author_email='dave.decker@gmail.com',
-    url='https://github.com/dfd/sktutor',
+    author=about['__author__'],
+    author_email=about['__email__'],
+    url=about['__uri__'],
+    license=about['__license__'],
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     include_package_data=True,
     install_requires=requirements,
-    license="BSD license",
     zip_safe=False,
     keywords='sktutor',
     classifiers=[
@@ -43,6 +54,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     test_suite='tests',
     tests_require=test_requirements
