@@ -488,9 +488,42 @@ class DummyCreator(BaseEstimator, TransformerMixin):
         column_set = set(self.columns)
         data_column_set = set(X.columns)
         if column_set != data_column_set:
-            # ensure same column order
+            # use same column order
             for col in self.columns:
                 if col not in data_column_set:
                     X[col] = 0
         X = X[self.columns]
         return X
+
+
+class OrderChecker(BaseEstimator, TransformerMixin):
+    """Ensure that the transformed dataset has the same columns and order as
+    the original fit dataset. Could be useful to check at the beginning and
+    end of pipelines.
+
+    """
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the checker on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        self.columns = X.columns
+        return self
+
+    def transform(self, X, **transform_params):
+        """Checks whether a dataset to transform has the same columns as the
+        fitting dataset, and returns X with columns in the same order as the
+        dataset in fit.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
+        if len(set(self.columns) - set(X.columns)) > 0:
+            raise ValueError("New data is missing columns from original data.")
+        elif len(set(X.columns) - set(self.columns)) > 0:
+            raise ValueError("New data has columns not in the original data.")
+        return pd.DataFrame(X[self.columns])

@@ -14,7 +14,8 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    ValueReplacer, FactorLimiter,
                                    SingleValueAboveThresholdDropper,
                                    SingleValueDropper, ColumnExtractor,
-                                   ColumnDropper, DummyCreator)
+                                   ColumnDropper, DummyCreator,
+                                   OrderChecker)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -644,3 +645,44 @@ class TestDummyCreator(object):
                     }
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)
+
+
+@pytest.mark.usefixtures("full_data_factors")
+class TestOrderChecker(object):
+
+    def test_order(self, full_data_factors):
+        # Test extraction of columns from a DataFrame
+        prep = OrderChecker()
+        prep.fit(full_data_factors)
+        new_dict = {'d': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j'],
+                    'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c']
+                    }
+        new_data = pd.DataFrame(new_dict)
+        result = prep.transform(new_data)
+        exp_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                    'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_missing_columns_error(self, full_data_factors):
+        # Test throwing an error when the new data is missing columns
+        prep = OrderChecker()
+        prep.fit(full_data_factors)
+        new_dict = {'d': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+                    }
+        new_data = pd.DataFrame(new_dict)
+        with pytest.raises(ValueError):
+            prep.transform(new_data)
+
+    def test_new_columns_error(self, full_data_factors):
+        # Test throwing an error when the new data is missing columns
+        prep = OrderChecker()
+        prep.fit(full_data_factors)
+        new_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                    'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j'],
+                    'e': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+                    }
+        new_data = pd.DataFrame(new_dict)
+        with pytest.raises(ValueError):
+            prep.transform(new_data)

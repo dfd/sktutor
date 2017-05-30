@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
-import os, sys
+import os
+import sys
 
 base_dir = os.path.dirname(__file__)
 src_dir = os.path.join(base_dir, "src")
