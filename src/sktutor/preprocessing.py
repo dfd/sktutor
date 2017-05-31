@@ -19,7 +19,6 @@ def mode(x):
         vc = pd.DataFrame(vc)
         vc.columns = ['counts']
         vc = vc.reset_index()
-        print(vc.columns)
         # sort to keep consistent output
         vc = vc.sort_values(['counts', 'index'], ascending=[False, True])
         vc = vc.set_index(['index'])
@@ -89,9 +88,6 @@ class GroupByImputer(BaseEstimator, TransformerMixin):
             key = x[self.group]
             if isinstance(key, pd.Series):
                 key = tuple(key)
-                # key = key.items()
-                print(key)
-                print(self.mapper[col][key])
             return self.mapper[col][key]
         except KeyError:
             return np.nan
@@ -465,6 +461,14 @@ class DummyCreator(BaseEstimator, TransformerMixin):
     def __init__(self, **kwargs):
         self.kwargs = kwargs
 
+    def _get_dummies(self, X):
+        return pd.get_dummies(X, **self.kwargs)
+
+    def _fit(self, X):
+        X = self._get_dummies(X)
+        self.columns = X.columns
+        return X
+
     def fit(self, X, y=None, **fit_params):
         """Fit the dummy creator on X. Retains a record of columns produced \
         with the fitting data.
@@ -473,9 +477,19 @@ class DummyCreator(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: Returns self.
         """
-        X = pd.get_dummies(X, **self.kwargs)
-        self.columns = X.columns
+        self._fit(X)
         return self
+
+    def fit_transform(self, X, y=None, **fit_params):
+        """Fit the dummy creator on X, then transform X.  Same as calling
+        self.fit().transform(), but more convenient and efficient.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        X = self._fit(X)
+        return X
 
     def transform(self, X, **transform_params):
         """Create dummies for the columns in X.
@@ -484,7 +498,7 @@ class DummyCreator(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with dummy variables.
         """
-        X = pd.get_dummies(X, **self.kwargs)
+        X = self._get_dummies(X)
         column_set = set(self.columns)
         data_column_set = set(X.columns)
         if column_set != data_column_set:

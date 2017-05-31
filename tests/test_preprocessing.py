@@ -563,6 +563,26 @@ class TestDummyCreator(object):
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
+    def test_fit_transform(self, full_data_factors):
+        # Test creating dummies variables from a DataFrame
+        prep = DummyCreator()
+        result = prep.fit_transform(full_data_factors)
+        exp_dict = {'c_a': [1, 1, 1, 0, 0, 0, 0, 1, 1, 0],
+                    'c_b': [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                    'c_c': [0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+                    'd_a': [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    'd_b': [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    'd_c': [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    'd_d': [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    'd_e': [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                    'd_f': [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                    'd_g': [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    'd_h': [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    'd_j': [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
     def test_drop_first_dummies(self, full_data_factors):
         # Test dropping first dummies for each column.
         kwargs = {'drop_first': True}
