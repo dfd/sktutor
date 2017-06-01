@@ -177,6 +177,11 @@ class OverMissingThresholdDropper(BaseEstimator, TransformerMixin):
         return X
 
 
+class dict_default(dict):
+    def __missing__(self, key):
+        return key
+
+
 class ValueReplacer(BaseEstimator, TransformerMixin):
     """Replaces Values in each column according to a nested dictionary.
     ``inverse_mapper`` is probably more intuitive for when one value replaces
@@ -218,6 +223,7 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
         elif not mapper:
             raise ValueError("Must initialize with either mapper or \
                              inverse_mapper.")
+        mapper = {key: dict_default(value) for key, value in mapper.items()}
         self.mapper = mapper
 
     def fit(self, X, y=None):
@@ -243,7 +249,7 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
         :rtype: A ``DataFrame`` with old values mapped to new values.
         """
         for col in self.mapper.keys():
-            X[col] = X[col].apply(lambda x: self.mapper[col].get(x, x))
+            X[col] = X[col].map(self.mapper[col])
         return X
 
 
