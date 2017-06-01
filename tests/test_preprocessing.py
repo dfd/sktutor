@@ -15,7 +15,7 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    SingleValueAboveThresholdDropper,
                                    SingleValueDropper, ColumnExtractor,
                                    ColumnDropper, DummyCreator,
-                                   OrderChecker)
+                                   ColumnValidator)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -668,11 +668,11 @@ class TestDummyCreator(object):
 
 
 @pytest.mark.usefixtures("full_data_factors")
-class TestOrderChecker(object):
+class TestColumnValidator(object):
 
     def test_order(self, full_data_factors):
         # Test extraction of columns from a DataFrame
-        prep = OrderChecker()
+        prep = ColumnValidator()
         prep.fit(full_data_factors)
         new_dict = {'d': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j'],
                     'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c']
@@ -687,7 +687,7 @@ class TestOrderChecker(object):
 
     def test_missing_columns_error(self, full_data_factors):
         # Test throwing an error when the new data is missing columns
-        prep = OrderChecker()
+        prep = ColumnValidator()
         prep.fit(full_data_factors)
         new_dict = {'d': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
                     }
@@ -697,7 +697,7 @@ class TestOrderChecker(object):
 
     def test_new_columns_error(self, full_data_factors):
         # Test throwing an error when the new data is missing columns
-        prep = OrderChecker()
+        prep = ColumnValidator()
         prep.fit(full_data_factors)
         new_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
                     'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j'],
