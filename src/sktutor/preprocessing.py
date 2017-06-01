@@ -229,8 +229,10 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
         :rtype: Returns self.
         """
         if len(set(self.mapper.keys()) - set(X.columns)) > 0:
-            raise ValueError("Mapper contains keys not found in DataFrame \
-                             columns.")
+            raise ValueError("Mapper contains columns not found in input"
+                             "data: " +
+                             ', '.join(set(self.mapper.keys())
+                                       - set(X.columns)))
         return self
 
     def transform(self, X):
@@ -403,8 +405,9 @@ class ColumnExtractor(BaseEstimator, TransformerMixin):
         :rtype: Returns self.
         """
         if len(set(self.col) - set(X.columns)) > 0:
-            raise ValueError("Column list contains columns not found in input \
-                             data.")
+            raise ValueError("Column list contains columns not found in input"
+                             "data: " +
+                             ', '.join(set(self.col) - set(X.columns)))
         return self
 
     def transform(self, X, **transform_params):
