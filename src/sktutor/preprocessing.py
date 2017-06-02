@@ -2,6 +2,7 @@
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
+from sktutor.utils import dict_factory, dict_default
 
 
 def mode(x):
@@ -177,11 +178,6 @@ class OverMissingThresholdDropper(BaseEstimator, TransformerMixin):
         return X
 
 
-class dict_default(dict):
-    def __missing__(self, key):
-        return key
-
-
 class ValueReplacer(BaseEstimator, TransformerMixin):
     """Replaces Values in each column according to a nested dictionary.
     ``inverse_mapper`` is probably more intuitive for when one value replaces
@@ -242,7 +238,8 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        """Replace the values in X with the values in the mapper.
+        """Replace the values in X with the values in the mapper.  Values not
+        accounted for in the mapper will be left untransformed.
 
         :param X: The input data.
         :type X: pandas DataFrame
@@ -272,7 +269,12 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, factors_per_column=None):
-        self.factors_per_column = factors_per_column
+        mapper = {}
+        for col, specs in factors_per_column.items():
+            new_dict = dict_factory('new_dict', specs['default'])
+            translation = {factor: factor for factor in specs['factors']}
+            mapper[col] = new_dict(translation)
+        self.mapper = mapper
 
     def fit(self, X, y=None):
         """Fit the factor limiter on X.  Checks that all columns in
@@ -282,21 +284,10 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: Returns self.
         """
-        if len(set(self.factors_per_column.keys()) - set(X.columns)) > 0:
+        if len(set(self.mapper.keys()) - set(X.columns)) > 0:
             raise ValueError("factors_per_column contains keys not found in \
             DataFrame columns.")
         return self
-
-    def _conform_to_factors(self, x, col):
-        """Helper function used to force conformity to factors_per_column
-        :param x: value to be evaluated
-        :param col: name of column to which x belongs
-        :type col: string
-        """
-        if x in self.factors_per_column[col]['factors']:
-            return x
-        else:
-            return self.factors_per_column[col]['default']
 
     def transform(self, X):
         """Limit the factors in X with the values in the factor_per_column.
@@ -305,9 +296,8 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with factors limited to the specifications.
         """
-        for col in self.factors_per_column.keys():
-            X[col] = X[col].apply(
-                lambda x: self._conform_to_factors(x, col))
+        for col, val in self.mapper.items():
+            X[col] = X[col].map(val)
         return X
 
 
