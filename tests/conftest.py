@@ -89,3 +89,15 @@ def single_values_data():
                  }
     df = pd.DataFrame(data_dict)
     return df
+
+
+@pytest.fixture
+def text_data():
+    """Sample data for grouping by 1 column
+    """
+    data_dict = {'a': ['Happy Birthday!', 'It\'s your  bday!'],
+                 'b': ['Happy Arbor Day!', 'Happy Gilmore'],
+                 'c': ['a', 'b']
+                 }
+    df = pd.DataFrame(data_dict)
+    return df

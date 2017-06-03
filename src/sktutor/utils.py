@@ -19,3 +19,12 @@ class dict_default(dict):
     """
     def __missing__(self, key):
         return key
+
+
+def bitwise_or(series_list):
+    if len(series_list) == 1:
+        return series_list[0]
+    else:
+        for i in range(len(series_list) - 1):
+            series = series_list[i] | series_list[i+1]
+    return series

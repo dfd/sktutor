@@ -2,7 +2,7 @@
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
-from sktutor.utils import dict_factory, dict_default
+from sktutor.utils import dict_factory, dict_default, bitwise_or
 
 
 def mode(x):
@@ -542,3 +542,73 @@ class ColumnValidator(BaseEstimator, TransformerMixin):
             raise ValueError("New data has columns not in the original data: "
                              + ', '.join(set(X.columns) - set(self.columns)))
         return pd.DataFrame(X[self.columns])
+
+
+class TextContainsDummyExtractor(BaseEstimator, TransformerMixin):
+    """Extract one or more dummy variables based on whether one or more text
+    columns contains one or more strings.
+
+    :param mapper: a mapping of new columns to criteria to populate it as True
+    :type mapper: dict
+
+    ``mapper`` takes the form::
+
+      {'old_column1':
+       {'new_column1':
+        [{'pattern': 'string1', 'kwargs': {'case': False}},
+         {'pattern': 'string2', 'kwargs': {'case': False}}
+         ],
+        'new_column2':
+        [{'pattern': 'string3', 'kwargs': {'case': False}},
+         {'pattern': 'string4', 'kwargs': {'case': False}}
+         ],
+        },
+       'old_column2':
+       {'new_column3':
+        [{'pattern': 'string5', 'kwargs': {'case': False}},
+         {'pattern': 'string6', 'kwargs': {'case': False}}
+         ],
+        'new_column4':
+        [{'pattern': 'string7', 'kwargs': {'case': False}},
+         {'pattern': 'string8', 'kwargs': {'case': False}}
+         ]
+        }
+       }
+    """
+
+    def __init__(self, mapper):
+        self.mapper = mapper
+
+    def fit(self, X, y=None):
+        """Fit the imputer on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        if len(set(self.mapper.keys()) - set(X.columns)) > 0:
+            raise ValueError("Mapper contains columns not found in input"
+                             "data: " +
+                             ', '.join(set(self.mapper.keys())
+                                       - set(X.columns)))
+        return self
+
+    def transform(self, X):
+        """Impute the eligible missing values in X.
+
+        :param X: The input data with missing values to be filled.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with eligible missing values filled.
+        """
+        for old_col, val in self.mapper.items():
+            for new_col, terms in val.items():
+                series_list = []
+                for term in terms:
+                    series_list.append(
+                        X[old_col].str.contains(term['pattern'],
+                                                **term['kwargs'])
+                    )
+                    print(series_list[len(series_list)-1])
+                X[new_col] = bitwise_or(series_list)
+                print('end of add new series')
+        return X

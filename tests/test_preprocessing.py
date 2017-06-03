@@ -15,7 +15,7 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    SingleValueAboveThresholdDropper,
                                    SingleValueDropper, ColumnExtractor,
                                    ColumnDropper, DummyCreator,
-                                   ColumnValidator)
+                                   ColumnValidator, TextContainsDummyExtractor)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -706,3 +706,66 @@ class TestColumnValidator(object):
         new_data = pd.DataFrame(new_dict)
         with pytest.raises(ValueError):
             prep.transform(new_data)
+
+
+@pytest.mark.usefixtures("text_data")
+class TestTextContainsDummyExtractor(object):
+
+    def test_mapper(self, text_data):
+        # Test text contains dummy with mapper.
+        mapper = {'a':
+                  {'a_1':
+                   [{'pattern': 'birthday', 'kwargs': {'case': False}},
+                    {'pattern': 'bday', 'kwargs': {'case': False}}
+                    ],
+                   'a_2':
+                   [{'pattern': 'b.*day', 'kwargs': {'case': False}}
+                    ],
+                   },
+                  'b':
+                  {'b_1':
+                   [{'pattern': 'h.*r', 'kwargs': {'case': False}}
+                    ],
+                   'b_2':
+                   [{'pattern': '!', 'kwargs': {'case': False}},
+                    ]
+                   }
+                  }
+        prep = TextContainsDummyExtractor(mapper)
+        prep.fit(text_data)
+        result = prep.transform(text_data)
+        exp_dict = {'a': ['Happy Birthday!', 'It\'s your  bday!'],
+                    'b': ['Happy Arbor Day!', 'Happy Gilmore'],
+                    'c': ['a', 'b'],
+                    'a_1': [1, 1],
+                    'a_2': [1, 1],
+                    'b_1': [1, 1],
+                    'b_2': [1, 0]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
+    def test_extra_column_value_error(self, text_data):
+        # Test throwing error when replacing values with a non-existant column.
+        mapper = {'a':
+                  {'a_1':
+                   [{'pattern': 'birthday', 'kwargs': {'case': False}},
+                    {'pattern': 'bday', 'kwargs': {'case': False}}
+                    ],
+                   'a_2':
+                   [{'pattern': 'b.*day', 'kwargs': {'case': False}}
+                    ],
+                   },
+                  'd':
+                  {'b_1':
+                   [{'pattern': 'h.*r', 'kwargs': {'case': False}}
+                    ],
+                   'b_2':
+                   [{'pattern': '!', 'kwargs': {'case': False}},
+                    ]
+                   }
+                  }
+        prep = TextContainsDummyExtractor(mapper)
+        with pytest.raises(ValueError):
+            prep.fit(text_data)
