@@ -21,16 +21,35 @@ class dict_default(dict):
         return key
 
 
-def bitwise_or(series_list):
+def bitwise_or(frame):
     """Returns the result of applying the bitwise ``|`` operator to a list of
     series
 
-    :param series_list: a list of ``pandas Series``
-    :type series_list: list
+    :param frame: data with colums to apply the bitwise or operator to
+    :type frame: list
     """
-    if len(series_list) == 1:
-        return series_list[0]
+    num_cols = frame.shape[1]
+    if num_cols == 1:
+        return frame.iloc[:, 0]
     else:
-        for i in range(len(series_list) - 1):
-            series = series_list[i] | series_list[i+1]
+        series = frame.iloc[:, 0]
+        for i in range(1, num_cols):
+            series = series | frame.iloc[:, i]
+    return series
+
+
+def bitwise_and(frame):
+    """Returns the result of applying the bitwise ``|`` operator to a list of
+    series
+
+    :param frame: data with colums to apply the bitwise or operator to
+    :type frame: list
+    """
+    num_cols = frame.shape[1]
+    if num_cols == 1:
+        return frame.iloc[:, 0]
+    else:
+        series = frame.iloc[:, 0]
+        for i in range(1, num_cols):
+            series = series & frame.iloc[:, i]
     return series
