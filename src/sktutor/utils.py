@@ -22,6 +22,12 @@ class dict_default(dict):
 
 
 def bitwise_or(series_list):
+    """Returns the result of applying the bitwise ``|`` operator to a list of
+    series
+
+    :param series_list: a list of ``pandas Series``
+    :type series_list: list
+    """
     if len(series_list) == 1:
         return series_list[0]
     else:
