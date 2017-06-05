@@ -62,4 +62,4 @@ target/
 .python-version
 
 # swap files
-*.sw[op]
+*.sw*
