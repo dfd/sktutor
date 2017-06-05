@@ -517,7 +517,7 @@ class TestColumnExtractor(object):
 @pytest.mark.usefixtures("missing_data")
 class TestColumnDropper(object):
 
-    def test_extraction(self, missing_data):
+    def test_drop_multiple(self, missing_data):
         # Test extraction of columns from a DataFrame
         prep = ColumnDropper(['d', 'e', 'f', 'g', 'h'])
         prep.fit(missing_data)
@@ -531,9 +531,28 @@ class TestColumnDropper(object):
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
-    def test_threshold_high_value_error(self, missing_data):
-        # Test throwing error when an dropping is requested of a missing.
-        # column
+    def test_drop_single(self, missing_data):
+        # Test extraction of columns from a DataFrame
+        prep = ColumnDropper('d')
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
+        exp_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+                    'e': [1, 2, None, None, None, None, None, None, None,
+                          None],
+                    'f': ['a', 'b', None, None, None, None, None, None, None,
+                          None],
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_error(self, missing_data):
+        # Test throwing error when dropping is requested of a missing column
         prep = ColumnDropper(['a', 'b', 'z'])
         with pytest.raises(ValueError):
             prep.fit(missing_data)
