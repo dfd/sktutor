@@ -217,8 +217,8 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
                         map2[string] = key
                 mapper[k] = map2
         elif not mapper:
-            raise ValueError("Must initialize with either mapper or \
-                             inverse_mapper.")
+            raise ValueError("Must initialize with either mapper or "
+                             "inverse_mapper.")
         mapper = {key: dict_default(value) for key, value in mapper.items()}
         self.mapper = mapper
 
@@ -245,6 +245,7 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with old values mapped to new values.
         """
+        X = X.copy(deep=True)
         for col in self.mapper.keys():
             X[col] = X[col].map(self.mapper[col])
         return X
@@ -285,8 +286,9 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
         :rtype: Returns self.
         """
         if len(set(self.mapper.keys()) - set(X.columns)) > 0:
-            raise ValueError("factors_per_column contains keys not found in \
-            DataFrame columns.")
+            raise ValueError("factors_per_column contains keys not found in "
+                             "DataFrame columns:" ', '.join(
+                                 set(self.mapper.keys()) - set(X.columns)))
         return self
 
     def transform(self, X):
@@ -296,6 +298,7 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with factors limited to the specifications.
         """
+        X = X.copy(deep=True)
         for col, val in self.mapper.items():
             X[col] = X[col].map(val)
         return X
@@ -433,8 +436,9 @@ class ColumnDropper(BaseEstimator, TransformerMixin):
         :rtype: Returns self.
         """
         if len(set(self.col) - set(X.columns)) > 0:
-            raise ValueError("Column list contains columns not found in input \
-                             data.")
+            raise ValueError("Column list contains columns not found in input "
+                             "data: " + ', '.join(set(self.col)
+                                                  - set(X.columns)))
         return self
 
     def transform(self, X, **transform_params):
@@ -469,7 +473,7 @@ class DummyCreator(BaseEstimator, TransformerMixin):
         return X
 
     def fit(self, X, y=None, **fit_params):
-        """Fit the dummy creator on X. Retains a record of columns produced \
+        """Fit the dummy creator on X. Retains a record of columns produced
         with the fitting data.
 
         :param X: The input data.
@@ -600,6 +604,7 @@ class TextContainsDummyExtractor(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with eligible missing values filled.
         """
+        X = X.copy(deep=True)
         for old_col, val in self.mapper.items():
             for new_col, terms in val.items():
                 series_list = []
@@ -640,8 +645,9 @@ class BitwiseOrApplicator(BaseEstimator, TransformerMixin):
         columns = [item for sublist in
                    [val for val in self.mapper.values()] for item in sublist]
         if len(set(columns) - set(X.columns)) > 0:
-            raise ValueError("Column list contains columns not found in input \
-                             data.")
+            raise ValueError("Column list contains columns not found in input "
+                             "data:" + ', '.join(set(columns)
+                                                 - set(X.columns)))
         return self
 
     def transform(self, X, **transform_params):
@@ -651,6 +657,7 @@ class BitwiseOrApplicator(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` without specified columns.
         """
+        X = X.copy(deep=True)
         for new_col, cols in self.mapper.items():
             X[new_col] = bitwise_or(X[cols]).astype(int)
         return X
@@ -683,8 +690,9 @@ class BitwiseAndApplicator(BaseEstimator, TransformerMixin):
         columns = [item for sublist in
                    [val for val in self.mapper.values()] for item in sublist]
         if len(set(columns) - set(X.columns)) > 0:
-            raise ValueError("Column list contains columns not found in input \
-                             data.")
+            raise ValueError("Column list contains columns not found in input "
+                             "data: " + ', '.join(set(columns)
+                                                  - set(X.columns)))
         return self
 
     def transform(self, X, **transform_params):
@@ -694,6 +702,7 @@ class BitwiseAndApplicator(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` without specified columns.
         """
+        X = X.copy(deep=True)
         for new_col, cols in self.mapper.items():
             X[new_col] = bitwise_and(X[cols]).astype(int)
         return X
