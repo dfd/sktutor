@@ -245,6 +245,7 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with old values mapped to new values.
         """
+        X = X.copy(deep=True)
         for col in self.mapper.keys():
             X[col] = X[col].map(self.mapper[col])
         return X
@@ -297,6 +298,7 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with factors limited to the specifications.
         """
+        X = X.copy(deep=True)
         for col, val in self.mapper.items():
             X[col] = X[col].map(val)
         return X
@@ -602,6 +604,7 @@ class TextContainsDummyExtractor(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with eligible missing values filled.
         """
+        X = X.copy(deep=True)
         for old_col, val in self.mapper.items():
             for new_col, terms in val.items():
                 series_list = []
@@ -654,6 +657,7 @@ class BitwiseOrApplicator(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` without specified columns.
         """
+        X = X.copy(deep=True)
         for new_col, cols in self.mapper.items():
             X[new_col] = bitwise_or(X[cols]).astype(int)
         return X
@@ -698,6 +702,7 @@ class BitwiseAndApplicator(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` without specified columns.
         """
+        X = X.copy(deep=True)
         for new_col, cols in self.mapper.items():
             X[new_col] = bitwise_and(X[cols]).astype(int)
         return X
