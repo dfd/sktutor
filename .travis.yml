@@ -16,7 +16,7 @@ matrix:
         - python: 3.6
           env: TOXENV=flake8
 
-script: tox
+script: travis_wait tox
 
 before_install:
   - pip install codecov tox
