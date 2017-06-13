@@ -11,6 +11,7 @@ import pandas.util.testing as tm
 import numpy as np
 from numpy.testing import assert_equal
 
+
 @pytest.mark.usefixtures("missing_data")
 class TestFeatureUnion(object):
 
@@ -27,10 +28,10 @@ class TestFeatureUnion(object):
                 ColumnDropper('b'),
                 GroupByImputer('median')
             )),
-            ('Factor Pipeline', make_pipeline(
+             ('Factor Pipeline', make_pipeline(
                 ColumnExtractor(FACTOR_FIELDS),
                 MissingValueFiller('Missing')
-            ))]
+             ))]
         )
         fu.fit(missing_data)
         result = fu.transform(missing_data)
@@ -45,8 +46,10 @@ class TestFeatureUnion(object):
                     'f': ['a', 'b', 'Missing', 'Missing', 'Missing',
                           'Missing', 'Missing', 'Missing', 'Missing',
                           'Missing'],
-                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', 'Missing'],
-                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'Missing', 'Missing']
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b',
+                          'Missing'],
+                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'Missing',
+                          'Missing']
                     }
         expected = pd.DataFrame(exp_dict)
         expected = expected[['a', 'c', 'e', 'b', 'd', 'f', 'g', 'h']]
@@ -54,15 +57,11 @@ class TestFeatureUnion(object):
 
     def test_feature_union_0s(self, missing_data):
         # Test FeatureUnion
-        CONTINUOUS_FIELDS = missing_data.select_dtypes(
-            ['int64', 'float64']).columns.tolist()
-        FACTOR_FIELDS = missing_data.select_dtypes(['object']).columns
-        CONTINUOUS_FIELDS.append('b')
         fu = FeatureUnion([('Nothing', None), ('Nothing2', None)])
         fu.fit(missing_data)
         result = fu.transform(missing_data)
         expected = np.array([], dtype=np.float64)
-        expected.shape=(10, 0)
+        expected.shape = (10, 0)
         print(expected)
         print(result)
         assert_equal(result, expected)
@@ -79,11 +78,11 @@ class TestFeatureUnion(object):
                 GroupByImputer('median', 'b'),
                 ColumnDropper('b'),
                 GroupByImputer('median')
-            )),
-            ('Factor Pipeline', make_pipeline(
+             )),
+             ('Factor Pipeline', make_pipeline(
                 ColumnExtractor(FACTOR_FIELDS),
                 MissingValueFiller('Missing')
-            ))]
+             ))]
         )
         result = fu.fit_transform(missing_data)
         exp_dict = {'a': [2, 2, 2, 4, 4, 4, 7, 8, 8, 8],
@@ -97,8 +96,10 @@ class TestFeatureUnion(object):
                     'f': ['a', 'b', 'Missing', 'Missing', 'Missing',
                           'Missing', 'Missing', 'Missing', 'Missing',
                           'Missing'],
-                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', 'Missing'],
-                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'Missing', 'Missing']
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b',
+                          'Missing'],
+                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'Missing',
+                          'Missing']
                     }
         expected = pd.DataFrame(exp_dict)
         expected = expected[['a', 'c', 'e', 'b', 'd', 'f', 'g', 'h']]
@@ -106,19 +107,15 @@ class TestFeatureUnion(object):
 
     def test_fit_transform_0s(self, missing_data):
         # Test FeatureUnion
-        CONTINUOUS_FIELDS = missing_data.select_dtypes(
-            ['int64', 'float64']).columns.tolist()
-        FACTOR_FIELDS = missing_data.select_dtypes(['object']).columns
-        CONTINUOUS_FIELDS.append('b')
         fu = FeatureUnion([('Nothing', None), ('Nothing2', None)])
         result = fu.fit_transform(missing_data)
         expected = np.array([], dtype=np.float64)
-        expected.shape=(10, 0)
+        expected.shape = (10, 0)
         print(expected)
         print(result)
         assert_equal(result, expected)
 
- 
+
 @pytest.mark.usefixtures("missing_data")
 class TestMakeUnion(object):
 
@@ -153,15 +150,17 @@ class TestMakeUnion(object):
                     'f': ['a', 'b', 'Missing', 'Missing', 'Missing',
                           'Missing', 'Missing', 'Missing', 'Missing',
                           'Missing'],
-                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', 'Missing'],
-                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'Missing', 'Missing']
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b',
+                          'Missing'],
+                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'Missing',
+                          'Missing']
                     }
         expected = pd.DataFrame(exp_dict)
         expected = expected[['a', 'c', 'e', 'b', 'd', 'f', 'g', 'h']]
         tm.assert_frame_equal(result, expected, check_dtype=False)
-        
+
     def test_value_error_kwargs(self, missing_data):
-        #Test sending a dict of kwargs to make_union
+        # Test sending a dict of kwargs to make_union
         CONTINUOUS_FIELDS = missing_data.select_dtypes(
             ['int64', 'float64']).columns.tolist()
         FACTOR_FIELDS = missing_data.select_dtypes(['object']).columns
@@ -180,3 +179,4 @@ class TestMakeUnion(object):
                 ),
                 **{'parameter': 'anything'}
             )
+            fu
