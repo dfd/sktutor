@@ -12,6 +12,14 @@ sktutor\.preprocessing module
     :undoc-members:
     :show-inheritance:
 
+sktutor\.pipline module
+-----------------------------
+
+.. automodule:: sktutor.pipeline
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

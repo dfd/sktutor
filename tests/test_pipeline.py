@@ -56,7 +56,7 @@ class TestFeatureUnion(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_feature_union_0s(self, missing_data):
-        # Test FeatureUnion
+        # Test FeatureUnion with None type Transformers
         fu = FeatureUnion([('Nothing', None), ('Nothing2', None)])
         fu.fit(missing_data)
         result = fu.transform(missing_data)
@@ -67,7 +67,7 @@ class TestFeatureUnion(object):
         assert_equal(result, expected)
 
     def test_fit_transform(self, missing_data):
-        # Test FeatureUnion
+        # Test FeatureUnion fit_transform
         CONTINUOUS_FIELDS = missing_data.select_dtypes(
             ['int64', 'float64']).columns.tolist()
         FACTOR_FIELDS = missing_data.select_dtypes(['object']).columns
@@ -106,7 +106,7 @@ class TestFeatureUnion(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_fit_transform_0s(self, missing_data):
-        # Test FeatureUnion
+        # Test FeatureUnion fit_transform with None Transformers
         fu = FeatureUnion([('Nothing', None), ('Nothing2', None)])
         result = fu.fit_transform(missing_data)
         expected = np.array([], dtype=np.float64)
@@ -160,7 +160,7 @@ class TestMakeUnion(object):
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
     def test_value_error_kwargs(self, missing_data):
-        # Test sending a dict of kwargs to make_union
+        # Test throwing value error because of kwargs
         CONTINUOUS_FIELDS = missing_data.select_dtypes(
             ['int64', 'float64']).columns.tolist()
         FACTOR_FIELDS = missing_data.select_dtypes(['object']).columns
