@@ -21,9 +21,9 @@ class dict_default(dict):
         return key
 
 
-def bitwise_or(frame):
-    """Returns the result of applying the bitwise ``|`` operator to a list of
-    series
+def bitwise_operator(frame, operator):
+    """Returns the result of applying the bitwise ``|`` or ``&`` operator to a
+    list of series
 
     :param frame: data with colums to apply the bitwise or operator to
     :type frame: list
@@ -34,22 +34,8 @@ def bitwise_or(frame):
     else:
         series = frame.iloc[:, 0]
         for i in range(1, num_cols):
-            series = series | frame.iloc[:, i]
-    return series
-
-
-def bitwise_and(frame):
-    """Returns the result of applying the bitwise ``|`` operator to a list of
-    series
-
-    :param frame: data with colums to apply the bitwise or operator to
-    :type frame: list
-    """
-    num_cols = frame.shape[1]
-    if num_cols == 1:
-        return frame.iloc[:, 0]
-    else:
-        series = frame.iloc[:, 0]
-        for i in range(1, num_cols):
-            series = series & frame.iloc[:, i]
+            if operator == 'and':
+                series = series & frame.iloc[:, i]
+            elif operator == 'or':
+                series = series | frame.iloc[:, i]
     return series

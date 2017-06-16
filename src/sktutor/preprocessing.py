@@ -2,7 +2,7 @@
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
-from sktutor.utils import dict_factory, dict_default, bitwise_or, bitwise_and
+from sktutor.utils import dict_factory, dict_default, bitwise_operator
 
 
 def mode(x):
@@ -613,17 +613,20 @@ class TextContainsDummyExtractor(BaseEstimator, TransformerMixin):
                         X[old_col].str.contains(term['pattern'],
                                                 **term['kwargs'])
                     )
-                X[new_col] = bitwise_or(
-                    pd.DataFrame(series_list).transpose()).astype(int)
+                X[new_col] = bitwise_operator(
+                    pd.DataFrame(series_list).transpose(), 'or').astype(int)
         return X
 
 
-class BitwiseOrApplicator(BaseEstimator, TransformerMixin):
-    """Apply a bitwise ``|`` operator to a list of columns.
+class BitwiseOperator(BaseEstimator, TransformerMixin):
+    """Apply a bitwise operator ``&`` or ``|`` to a list of columns.
 
     :param mapper: A mapping from new columns which will be defined by applying
-                   the bitwise ``|`` operator to a list of old columns
+                   the bitwise operator to a list of old columns
     :type mapper: dict
+    :param operator: the name of the bitwise operator to apply.
+                     'and', 'or' are acceptable inputs
+    :type operator: str
 
     ``mapper`` takes the form::
 
@@ -632,8 +635,13 @@ class BitwiseOrApplicator(BaseEstimator, TransformerMixin):
        }
 
     """
-    def __init__(self, mapper):
+
+    def __init__(self, operator, mapper):
         self.mapper = mapper
+        if operator in ['and', 'or']:
+            self.operator = operator
+        else:
+            raise ValueError("parameter operator can only be 'and' or 'or'")
 
     def fit(self, X, y=None, **fit_params):
         """Fit the dropper on X. Checks that all columns are in X.
@@ -659,50 +667,5 @@ class BitwiseOrApplicator(BaseEstimator, TransformerMixin):
         """
         X = X.copy(deep=True)
         for new_col, cols in self.mapper.items():
-            X[new_col] = bitwise_or(X[cols]).astype(int)
-        return X
-
-
-class BitwiseAndApplicator(BaseEstimator, TransformerMixin):
-    """Apply a bitwise ``&`` operator to a list of columns.
-
-    :param mapper: A mapping from new columns which will be defined by applying
-                   the bitwise ``&`` operator to a list of old columns
-    :type mapper: dict
-
-    ``mapper`` takes the form::
-
-      {'new_column1': ['old_column1', 'old_column2', 'old_column3'],
-       'new_column2': ['old_column2', 'old_column4', 'old_column5']
-       }
-
-    """
-    def __init__(self, mapper):
-        self.mapper = mapper
-
-    def fit(self, X, y=None, **fit_params):
-        """Fit the dropper on X. Checks that all columns are in X.
-
-        :param X: The input data.
-        :type X: pandas DataFrame
-        :rtype: Returns self.
-        """
-        columns = [item for sublist in
-                   [val for val in self.mapper.values()] for item in sublist]
-        if len(set(columns) - set(X.columns)) > 0:
-            raise ValueError("Column list contains columns not found in input "
-                             "data: " + ', '.join(set(columns)
-                                                  - set(X.columns)))
-        return self
-
-    def transform(self, X, **transform_params):
-        """Drop the specified columns in X.
-
-        :param X: The input data.
-        :type X: pandas DataFrame
-        :rtype: A ``DataFrame`` without specified columns.
-        """
-        X = X.copy(deep=True)
-        for new_col, cols in self.mapper.items():
-            X[new_col] = bitwise_and(X[cols]).astype(int)
+            X[new_col] = bitwise_operator(X[cols], self.operator).astype(int)
         return X

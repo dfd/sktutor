@@ -9,7 +9,7 @@ Tests for `preprocessing` module.
 """
 
 import pytest
-from sktutor.utils import (dict_factory, dict_default, bitwise_or, bitwise_and)
+from sktutor.utils import (dict_factory, dict_default, bitwise_operator)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -39,51 +39,45 @@ class TestDictDefault(object):
 @pytest.mark.usefixtures("binary_data")
 @pytest.mark.usefixtures("boolean_data")
 @pytest.mark.usefixtures("binary_series")
-class TestBitwiseOr(object):
+class TestBitwiseOperator(object):
 
-    def test_binary_data(self, binary_data):
-        # test bitwise_or on binary data
-        result = bitwise_or(binary_data.iloc[:, 0:2])
+    def test_or_binary_data(self, binary_data):
+        # test bitwise_operator on binary data
+        result = bitwise_operator(binary_data.iloc[:, 0:2], 'or')
         expected = pd.Series([1, 1, 0, 1])
         tm.assert_series_equal(result, expected, check_dtype=False)
 
-    def test_boolean_data(self, boolean_data):
-        # test bitwise_or on boolean data
-        result = bitwise_or(boolean_data.iloc[:, 0:2])
+    def test_or_boolean_data(self, boolean_data):
+        # test bitwise_operator on boolean data
+        result = bitwise_operator(boolean_data.iloc[:, 0:2], 'or')
         expected = pd.Series([True, True, False, True])
         tm.assert_series_equal(result, expected, check_dtype=False)
 
-    def test_binary_series(self, binary_series):
-        # test bitwise_or on boolean data
+    def test_or_binary_series(self, binary_series):
+        # test bitwise_operator on boolean data
         df = pd.DataFrame(binary_series)
-        result = bitwise_or(df)
+        result = bitwise_operator(df, 'or')
         print(df)
         print(result)
         expected = pd.Series([1, 1, 0, 0])
         tm.assert_series_equal(result, expected, check_names=False)
 
-
-@pytest.mark.usefixtures("binary_data")
-@pytest.mark.usefixtures("boolean_data")
-@pytest.mark.usefixtures("binary_series")
-class TestBitwiseAnd(object):
-
-    def test_binary_data(self, binary_data):
-        # test bitwise_and on binary data
-        result = bitwise_and(binary_data.iloc[:, 0:2])
+    def test_and_binary_data(self, binary_data):
+        # test bitwise_operator on binary data
+        result = bitwise_operator(binary_data.iloc[:, 0:2], 'and')
         expected = pd.Series([1, 0, 0, 0])
         tm.assert_series_equal(result, expected, check_dtype=False)
 
-    def test_boolean_data(self, boolean_data):
-        # test bitwise_and on boolean data
-        result = bitwise_and(boolean_data.iloc[:, 0:2])
+    def test_and_boolean_data(self, boolean_data):
+        # test bitwise_operator on boolean data
+        result = bitwise_operator(boolean_data.iloc[:, 0:2], 'and')
         expected = pd.Series([True, False, False, False])
         tm.assert_series_equal(result, expected, check_dtype=False)
 
-    def test_binary_series(self, binary_series):
-        # test bitwise_and on boolean data
+    def test_and_binary_series(self, binary_series):
+        # test bitwise_operator on boolean data
         df = pd.DataFrame(binary_series)
-        result = bitwise_and(df)
+        result = bitwise_operator(df, 'or')
         print(df)
         print(result)
         expected = pd.Series([1, 1, 0, 0])

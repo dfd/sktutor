@@ -16,7 +16,7 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    SingleValueDropper, ColumnExtractor,
                                    ColumnDropper, DummyCreator,
                                    ColumnValidator, TextContainsDummyExtractor,
-                                   BitwiseOrApplicator, BitwiseAndApplicator)
+                                   BitwiseOperator)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -792,15 +792,24 @@ class TestTextContainsDummyExtractor(object):
 
 
 @pytest.mark.usefixtures("boolean_data")
-class TestBitwiseOrApplicator(object):
+class TestBitwiseOperator(object):
 
-    def test_mapper_boolean(self, boolean_data):
+    def test_operator_value_error(self, text_data):
+        # Test throwing error when using invalid operator parameter
+        mapper = {'f': ['c', 'd', 'e'],
+                  'g': ['a', 'b']
+                  }
+        with pytest.raises(ValueError):
+            prep = BitwiseOperator('with', mapper)
+            prep
+
+    def test_or_mapper_boolean(self, boolean_data):
         # Test bitwise or applied to booleans
         mapper = {'f': ['c', 'd', 'e'],
                   'g': ['a', 'b']
                   }
 
-        prep = BitwiseOrApplicator(mapper)
+        prep = BitwiseOperator('or', mapper)
         prep.fit(boolean_data)
         result = prep.transform(boolean_data)
         exp_dict = {'a': [True, True, False, False],
@@ -816,13 +825,13 @@ class TestBitwiseOrApplicator(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 
-    def test_mapper_binary(self, boolean_data):
+    def test_or_mapper_binary(self, boolean_data):
         # Test bitwise or applied to integers
         mapper = {'f': ['c', 'd', 'e'],
                   'g': ['a', 'b']
                   }
 
-        prep = BitwiseOrApplicator(mapper)
+        prep = BitwiseOperator('or', mapper)
         prep.fit(boolean_data)
         result = prep.transform(boolean_data)
         exp_dict = {'a': [1, 1, 0, 0],
@@ -838,26 +847,22 @@ class TestBitwiseOrApplicator(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 
-    def test_extra_column_value_error(self, text_data):
+    def test_or_extra_column_value_error(self, text_data):
         # Test throwing error when replacing values with a non-existant column.
         mapper = {'f': ['c', 'd', 'e'],
                   'g': ['a', 'b']
                   }
-        prep = BitwiseOrApplicator(mapper)
+        prep = BitwiseOperator('or', mapper)
         with pytest.raises(ValueError):
             prep.fit(text_data)
 
-
-@pytest.mark.usefixtures("boolean_data")
-class TestBitwiseAndApplicator(object):
-
-    def test_mapper_boolean(self, boolean_data):
+    def test_and_mapper_boolean(self, boolean_data):
         # Test bitwise and applied to booleans
         mapper = {'f': ['c', 'd', 'e'],
                   'g': ['a', 'b']
                   }
 
-        prep = BitwiseAndApplicator(mapper)
+        prep = BitwiseOperator('and', mapper)
         prep.fit(boolean_data)
         result = prep.transform(boolean_data)
         exp_dict = {'a': [True, True, False, False],
@@ -873,13 +878,13 @@ class TestBitwiseAndApplicator(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 
-    def test_mapper_binary(self, boolean_data):
+    def test_and_mapper_binary(self, boolean_data):
         # Test bitwise and applied to integers
         mapper = {'f': ['c', 'd', 'e'],
                   'g': ['a', 'b']
                   }
 
-        prep = BitwiseAndApplicator(mapper)
+        prep = BitwiseOperator('and', mapper)
         prep.fit(boolean_data)
         result = prep.transform(boolean_data)
         exp_dict = {'a': [1, 1, 0, 0],
@@ -895,11 +900,11 @@ class TestBitwiseAndApplicator(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 
-    def test_extra_column_value_error(self, text_data):
+    def test_and_extra_column_value_error(self, text_data):
         # Test throwing error when replacing values with a non-existant column.
         mapper = {'f': ['c', 'd', 'e'],
                   'g': ['a', 'b']
                   }
-        prep = BitwiseAndApplicator(mapper)
+        prep = BitwiseOperator('and', mapper)
         with pytest.raises(ValueError):
             prep.fit(text_data)
