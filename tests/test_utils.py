@@ -9,7 +9,8 @@ Tests for `preprocessing` module.
 """
 
 import pytest
-from sktutor.utils import (dict_factory, dict_default, bitwise_operator)
+from sktutor.utils import (dict_factory, dict_default, bitwise_operator,
+                           bitwise_xor, bitwise_not)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -82,3 +83,67 @@ class TestBitwiseOperator(object):
         print(result)
         expected = pd.Series([1, 1, 0, 0])
         tm.assert_series_equal(result, expected, check_names=False)
+
+
+@pytest.mark.usefixtures("binary_data")
+@pytest.mark.usefixtures("boolean_data")
+@pytest.mark.usefixtures("binary_series")
+class TestBitwiseXor(object):
+
+    def test_binary_data(self, binary_data):
+        # test bitwise_xor binary data
+        result = bitwise_xor(binary_data.iloc[:, 0:2])
+        expected = pd.Series([0, 1, 0, 1])
+        tm.assert_series_equal(result, expected, check_dtype=False)
+
+    def test_boolean_data(self, boolean_data):
+        # test bitwise_xor on boolean data
+        result = bitwise_xor(boolean_data.iloc[:, 0:2])
+        expected = pd.Series([False, True, False, True])
+        tm.assert_series_equal(result, expected, check_dtype=False)
+
+    def test_too_many_columns_value_error(self, binary_data):
+        # Test throwing error for more than 2 columns
+        with pytest.raises(ValueError):
+            bitwise_xor(binary_data)
+
+    def test_too_few_columns_value_error(self, binary_series):
+        # Test throwing error for just 1 column
+        with pytest.raises(ValueError):
+            bitwise_xor(pd.DataFrame(binary_series))
+
+
+@pytest.mark.usefixtures("binary_data")
+@pytest.mark.usefixtures("boolean_data")
+@pytest.mark.usefixtures("binary_series")
+class TestBitwiseNot(object):
+
+    def test_binary_data(self, binary_data):
+        # test bitwise_not on binary data
+        result = bitwise_not(binary_data)
+        exp_dict = {'a': [False, False, True, True],
+                    'b': [False, True, True, False],
+                    'c': [True, False, False, True],
+                    'd': [False, True, False, True],
+                    'e': [True, False, True, False]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_boolean_data(self, boolean_data):
+        # test bitwise_not on boolean data
+        result = bitwise_not(boolean_data)
+        exp_dict = {'a': [False, False, True, True],
+                    'b': [False, True, True, False],
+                    'c': [True, False, False, True],
+                    'd': [False, True, False, True],
+                    'e': [True, False, True, False]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_binary_series(self, binary_series):
+        # test bitwise_xor on binary series
+        result = bitwise_not(binary_series)
+        expected = pd.Series([False, False, True, True])
+        tm.assert_series_equal(result, expected, check_dtype=False)
