@@ -14,6 +14,11 @@ else:
 
 
 class FeatureUnion(SKFeatureUnion):
+    """ Perform a list of transformations in parallel and concat the results
+
+    :param transformers: list of (string, transformer) tuples
+    :param n_jobs: Number of jobs to run in parallel (default 1).
+    """
 
     def fit_transform(self, X, y=None, **fit_params):
         self._validate_transformers()
@@ -37,16 +42,12 @@ class FeatureUnion(SKFeatureUnion):
 
     def transform(self, X):
         """Transform X separately by each transformer, concatenate results.
-        Parameters
-        ----------
-        X : iterable or array-like, depending on transformers
-            Input data to be transformed.
-        Returns
-        -------
-        X_t : array-like or sparse matrix, shape (n_samples, sum_n_components)
-            hstack of results of transformers. sum_n_components is the
-            sum of n_components (output dimension) over transformers.
+
+        :param X: Input data to be transformed.
+        :type X: iterable or array-like, depending on transformers
+        :rtype: DataFrame with concatenated results of transformers.
         """
+
         if _sklearn_version == 'old':
             Xs = Parallel(n_jobs=self.n_jobs)(
                 delayed(_transform_one)(trans, name, weight, X)
@@ -68,14 +69,12 @@ def make_union(*transformers, **kwargs):
     and does not permit, naming the transformers. Instead, they will be given
     names automatically based on their types. It also does not allow weighting.
     Parameters
-    ----------
-    *transformers : list of estimators
-    n_jobs : int, optional
-        Number of jobs to run in parallel (default 1).
-    Returns
-    -------
-    f : FeatureUnion
-   """
+
+    :param transformers: list of estimators
+    :param n_jobs: Number of jobs to run in parallel (default 1).
+    :rtype: FeatureUnion
+    """
+
     n_jobs = kwargs.pop('n_jobs', 1)
     if kwargs:
         # We do not currently support `transformer_weights` as we may want to
