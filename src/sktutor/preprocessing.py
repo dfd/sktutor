@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
 from sktutor.utils import dict_factory, dict_default, bitwise_operator
+from scipy import stats
 
 
 def mode(x):
@@ -668,4 +669,60 @@ class BitwiseOperator(BaseEstimator, TransformerMixin):
         X = X.copy(deep=True)
         for new_col, cols in self.mapper.items():
             X[new_col] = bitwise_operator(X[cols], self.operator).astype(int)
+        return X
+
+
+class BoxCoxTransformer(BaseEstimator, TransformerMixin):
+    """Create BoxCox Transformations on all columns.
+
+    :param drop: If True, drop original columns
+    :type dummy_na: boolean
+    """
+
+    def __init__(self, drop=True, **kwargs):
+        self.drop = drop
+        self.kwargs = kwargs
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the transformer on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        self.columns = X.columns
+        self.lambdas = dict()
+        for col in self.columns:
+            self.lambdas[col] = stats.boxcox(X[col])[1]
+        return self
+
+    def fit_transform(self, X, y=None, **fit_params):
+        """Fit the validator on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        X = X.copy()
+        self.columns = X.columns
+        self.lambdas = dict()
+        for col in self.columns:
+            X[col + '_boxcox'], self.lambdas[col] = stats.boxcox(X[col])
+            if self.drop:
+                X = X.drop(col, axis=1)
+        return X
+
+    def transform(self, X, **transform_params):
+        """Checks whether a dataset to transform has the same columns as the
+        fitting dataset, and returns X with columns in the same order as the
+        dataset in fit.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
+        for col in self.lambdas:
+            X[col + '_boxcox'] = stats.boxcox(X[col], self.lambdas[col])
+            if self.drop:
+                X = X.drop(col, axis=1)
         return X

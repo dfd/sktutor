@@ -50,7 +50,7 @@ def missing_data_factors():
 
 @pytest.fixture
 def missing_data_numeric():
-    """DataFrame with missing numberic data
+    """DataFrame with missing numeric data
     """
     data_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
                  'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
@@ -66,6 +66,18 @@ def full_data_factors():
     """
     data_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
                  'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+                 }
+    df = pd.DataFrame(data_dict)
+    return df
+
+
+@pytest.fixture
+def full_data_numeric():
+    """DataFrame with numeric data
+    """
+    data_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                 'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+                 'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                  }
     df = pd.DataFrame(data_dict)
     return df

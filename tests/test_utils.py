@@ -78,7 +78,7 @@ class TestBitwiseOperator(object):
     def test_and_binary_series(self, binary_series):
         # test bitwise_operator on boolean data
         df = pd.DataFrame(binary_series)
-        result = bitwise_operator(df, 'or')
+        result = bitwise_operator(df, 'and')
         print(df)
         print(result)
         expected = pd.Series([1, 1, 0, 0])
