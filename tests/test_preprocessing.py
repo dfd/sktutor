@@ -918,16 +918,16 @@ class TestBoxCoxTransformer(object):
         # test default functionalty
         prep = BoxCoxTransformer(drop=True)
         result = prep.fit_transform(full_data_numeric)
-        exp_dict = {'a_boxcox': [0.71695113, 0.71695113, 0.71695113,
-                                 1.15921005, 1.48370246, 1.48370246,
-                                 2.1414305, 2.30371316, 2.30371316,
-                                 2.30371316],
-                    'c_boxcox': [0., 0.8310186, 1.47159953, 2.0132148,
-                                 2.0132148, 2.0132148, 3.32332097, 4.0444457,
-                                 4.0444457, 4.0444457],
-                    'e_boxcox': [0., 0.89952678, 1.67649211, 2.38322965,
-                                 3.04195191, 3.66477648, 4.25925117,
-                                 4.83048775,  5.38215505,  5.91700138]
+        exp_dict = {'a': [0.71695113, 0.71695113, 0.71695113,
+                          1.15921005, 1.48370246, 1.48370246,
+                          2.1414305, 2.30371316, 2.30371316,
+                          2.30371316],
+                    'c': [0., 0.8310186, 1.47159953, 2.0132148,
+                          2.0132148, 2.0132148, 3.32332097, 4.0444457,
+                          4.0444457, 4.0444457],
+                    'e': [0., 0.89952678, 1.67649211, 2.38322965,
+                          3.04195191, 3.66477648, 4.25925117,
+                          4.83048775,  5.38215505,  5.91700138]
                     }
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False,
@@ -938,67 +938,18 @@ class TestBoxCoxTransformer(object):
         prep = BoxCoxTransformer(drop=True)
         prep.fit(full_data_numeric)
         result = prep.transform(full_data_numeric)
-        exp_dict = {'a_boxcox': [0.71695113, 0.71695113, 0.71695113,
-                                 1.15921005, 1.48370246, 1.48370246,
-                                 2.1414305, 2.30371316, 2.30371316,
-                                 2.30371316],
-                    'c_boxcox': [0., 0.8310186, 1.47159953, 2.0132148,
-                                 2.0132148, 2.0132148, 3.32332097, 4.0444457,
-                                 4.0444457, 4.0444457],
-                    'e_boxcox': [0., 0.89952678, 1.67649211, 2.38322965,
-                                 3.04195191, 3.66477648, 4.25925117,
-                                 4.83048775,  5.38215505,  5.91700138]
+        exp_dict = {'a': [0.71695113, 0.71695113, 0.71695113,
+                          1.15921005, 1.48370246, 1.48370246,
+                          2.1414305, 2.30371316, 2.30371316,
+                          2.30371316],
+                    'c': [0., 0.8310186, 1.47159953, 2.0132148,
+                          2.0132148, 2.0132148, 3.32332097, 4.0444457,
+                          4.0444457, 4.0444457],
+                    'e': [0., 0.89952678, 1.67649211, 2.38322965,
+                          3.04195191, 3.66477648, 4.25925117,
+                          4.83048775,  5.38215505,  5.91700138]
                     }
         expected = pd.DataFrame(exp_dict)
-        tm.assert_frame_equal(result, expected, check_dtype=False,
-                              check_like=True)
-
-    def test_no_drop_orig_cols(self, full_data_numeric):
-        # test dropping original columns
-        prep = BoxCoxTransformer(drop=False)
-        result = prep.fit_transform(full_data_numeric)
-        exp_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
-                    'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
-                    'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                    'a_boxcox': [0.71695113, 0.71695113, 0.71695113,
-                                 1.15921005, 1.48370246, 1.48370246,
-                                 2.1414305, 2.30371316, 2.30371316,
-                                 2.30371316],
-                    'c_boxcox': [0., 0.8310186, 1.47159953, 2.0132148,
-                                 2.0132148, 2.0132148, 3.32332097, 4.0444457,
-                                 4.0444457, 4.0444457],
-                    'e_boxcox': [0., 0.89952678, 1.67649211, 2.38322965,
-                                 3.04195191, 3.66477648, 4.25925117,
-                                 4.83048775,  5.38215505,  5.91700138]
-                    }
-        expected = pd.DataFrame(exp_dict)
-        expected = expected[['a', 'c', 'e', 'a_boxcox', 'c_boxcox',
-                             'e_boxcox']]
-        tm.assert_frame_equal(result, expected, check_dtype=False,
-                              check_like=True)
-
-    def test_no_drop_orig_cols_fit_then_transform(self, full_data_numeric):
-        # test dropping original columns
-        prep = BoxCoxTransformer(drop=False)
-        prep.fit(full_data_numeric)
-        result = prep.transform(full_data_numeric)
-        exp_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
-                    'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
-                    'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                    'a_boxcox': [0.71695113, 0.71695113, 0.71695113,
-                                 1.15921005, 1.48370246, 1.48370246,
-                                 2.1414305, 2.30371316, 2.30371316,
-                                 2.30371316],
-                    'c_boxcox': [0., 0.8310186, 1.47159953, 2.0132148,
-                                 2.0132148, 2.0132148, 3.32332097, 4.0444457,
-                                 4.0444457, 4.0444457],
-                    'e_boxcox': [0., 0.89952678, 1.67649211, 2.38322965,
-                                 3.04195191, 3.66477648, 4.25925117,
-                                 4.83048775,  5.38215505,  5.91700138]
-                    }
-        expected = pd.DataFrame(exp_dict)
-        expected = expected[['a', 'c', 'e', 'a_boxcox', 'c_boxcox',
-                             'e_boxcox']]
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 

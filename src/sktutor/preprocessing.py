@@ -675,13 +675,9 @@ class BitwiseOperator(BaseEstimator, TransformerMixin):
 
 class BoxCoxTransformer(BaseEstimator, TransformerMixin):
     """Create BoxCox Transformations on all columns.
-
-    :param drop: If True, drop original columns
-    :type dummy_na: boolean
     """
 
-    def __init__(self, drop=True, **kwargs):
-        self.drop = drop
+    def __init__(self, **kwargs):
         self.kwargs = kwargs
 
     def fit(self, X, y=None, **fit_params):
@@ -708,9 +704,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         self.columns = X.columns
         self.lambdas = dict()
         for col in self.columns:
-            X[col + '_boxcox'], self.lambdas[col] = stats.boxcox(X[col])
-            if self.drop:
-                X = X.drop(col, axis=1)
+            X[col], self.lambdas[col] = stats.boxcox(X[col])
         return X
 
     def transform(self, X, **transform_params):
@@ -723,9 +717,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         :rtype: A ``DataFrame`` with specified columns.
         """
         for col in self.lambdas:
-            X[col + '_boxcox'] = stats.boxcox(X[col], self.lambdas[col])
-            if self.drop:
-                X = X.drop(col, axis=1)
+            X[col] = stats.boxcox(X[col], self.lambdas[col])
         return X
 
 
@@ -740,7 +732,7 @@ class InteractionCreator(BaseEstimator, TransformerMixin):
         self.columns2 = columns2
 
     def fit(self, X, y=None, **fit_params):
-        """Fit the dropper on X. Checks that all columns are in X.
+        """Fit the creator on X. Checks that all columns are in X.
 
         :param X: The input data.
         :type X: pandas DataFrame
