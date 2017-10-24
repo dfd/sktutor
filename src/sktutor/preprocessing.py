@@ -4,6 +4,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
 from sktutor.utils import dict_factory, dict_default, bitwise_operator
 from scipy import stats
+from patsy import dmatrix
 
 
 def mode(x):
@@ -726,3 +727,44 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
             if self.drop:
                 X = X.drop(col, axis=1)
         return X
+
+
+class InteractionCreator(BaseEstimator, TransformerMixin):
+    """Creates interactions across columns of a ``DataFrame``
+
+    :param col: A list of columns to extract from the ``DataFrame``
+    :type col: list of strings
+    """
+    def __init__(self, columns1, columns2):
+        self.columns1 = columns1
+        self.columns2 = columns2
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the dropper on X. Checks that all columns are in X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        if len((set(self.columns1) | set(self.columns2)) - set(X.columns)) > 0:
+            raise ValueError("Column lists contains columns not found in input"
+                             " data: " + ', '.join((set(self.columns1)
+                                                    | set(self.columns2))
+                                                   - set(X.columns)))
+        formula = '0'
+        for col1 in self.columns1:
+            for col2 in self.columns2:
+                formula = formula + '+' + col1 + ':' + col2
+        self.formula = formula
+        return self
+
+    def transform(self, X, **transform_params):
+        """Add specified interactions to X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` without specified columns.
+        """
+
+        model_matrix = dmatrix(self.formula, data=X, return_type='dataframe')
+        return pd.concat([X, model_matrix], axis=1)

@@ -146,3 +146,17 @@ def binary_data():
 @pytest.fixture
 def binary_series():
     return pd.Series([1, 1, 0, 0])
+
+
+@pytest.fixture
+def interaction_data():
+    """Sample binary data for bitwise operators
+    """
+    data_dict = {'a': [2, 3, 4, 5],
+                 'b': [1, 0, 0, 1],
+                 'c': [0, 1, 1, 0],
+                 'd': [1, 0, 1, 0],
+                 'e': [0, 1, 0, 1]
+                 }
+    df = pd.DataFrame(data_dict)
+    return df
