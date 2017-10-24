@@ -23,7 +23,8 @@ with open('HISTORY.rst') as history_file:
 requirements = [
         'scipy>=0.19.0',
         'pandas>=0.20.1',
-        'scikit-learn>=0.18.1'
+        'scikit-learn>=0.18.1',
+        'patsy>=0.4.1'
 ]
 
 test_requirements = [
