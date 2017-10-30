@@ -17,7 +17,7 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    ColumnDropper, DummyCreator,
                                    ColumnValidator, TextContainsDummyExtractor,
                                    BitwiseOperator, BoxCoxTransformer,
-                                   InteractionCreator)
+                                   InteractionCreator, StandardScaler)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -986,3 +986,44 @@ class TestInteractionCreator(object):
 
         with pytest.raises(ValueError):
             prep.fit_transform(interaction_data)
+
+
+@pytest.mark.usefixtures("full_data_numeric")
+class TestStandardScaler(object):
+
+    def test_fit_transfrom(self, full_data_numeric):
+        # test default functionalty
+        prep = StandardScaler()
+        result = prep.fit_transform(full_data_numeric)
+        exp_dict = {'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
+                          -0.31722063, -0.31722063,  0.87235674,  1.26888254,
+                          1.26888254,  1.26888254],
+                    'c': [-1.45260037, -1.10674314, -0.76088591, -0.41502868,
+                          -0.41502868, -0.41502868,  0.62254302,  1.31425748,
+                          1.31425748,  1.31425748],
+                    'e': [-1.5666989, -1.21854359, -0.87038828, -0.52223297,
+                          -0.17407766, 0.17407766, 0.52223297, 0.87038828,
+                          1.21854359, 1.5666989]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
+    def test_fit_then_transform(self, full_data_numeric):
+        # test using fit then transform
+        prep = StandardScaler()
+        prep.fit(full_data_numeric)
+        result = prep.transform(full_data_numeric)
+        exp_dict = {'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
+                          -0.31722063, -0.31722063,  0.87235674,  1.26888254,
+                          1.26888254,  1.26888254],
+                    'c': [-1.45260037, -1.10674314, -0.76088591, -0.41502868,
+                          -0.41502868, -0.41502868,  0.62254302,  1.31425748,
+                          1.31425748,  1.31425748],
+                    'e': [-1.5666989, -1.21854359, -0.87038828, -0.52223297,
+                          -0.17407766, 0.17407766, 0.52223297, 0.87038828,
+                          1.21854359, 1.5666989]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)

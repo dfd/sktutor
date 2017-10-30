@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import StandardScaler as ScikitStandardScaler
 import numpy as np
 from sktutor.utils import dict_factory, dict_default, bitwise_operator
 from scipy import stats
@@ -760,3 +761,51 @@ class InteractionCreator(BaseEstimator, TransformerMixin):
 
         model_matrix = dmatrix(self.formula, data=X, return_type='dataframe')
         return pd.concat([X, model_matrix], axis=1)
+
+    
+class StandardScaler(BaseEstimator, TransformerMixin):
+    """Standardize features by removing mean and scaling to unit variance
+    """
+
+    def __init__(self, **kwargs):
+        self.ScikitStandardScaler = ScikitStandardScaler(**kwargs)
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the transformer on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        self.columns = X.columns
+        self.ScikitStandardScaler.fit(X)
+        return self
+
+    def fit_transform(self, X, y=None, **fit_params):
+        """Fit the validator on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        X = X.copy()
+        self.columns = X.columns
+        X_transform = self.ScikitStandardScaler.fit_transform(X)
+        X = pd.DataFrame(X_transform, columns=self.columns)
+        return X
+
+    def transform(self, X, **transform_params):
+        """Checks whether a dataset to transform has the same columns as the
+        fitting dataset, and returns X with columns in the same order as the
+        dataset in fit.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
+        ### ensure that columns are in same order as in fit
+        X = X.copy()[self.columns]
+        X_transform = self.ScikitStandardScaler.transform(X)
+        X = pd.DataFrame(X_transform, columns=self.columns)
+        return X
+
