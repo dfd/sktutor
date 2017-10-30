@@ -678,9 +678,6 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
     """Create BoxCox Transformations on all columns.
     """
 
-    def __init__(self, **kwargs):
-        self.kwargs = kwargs
-
     def fit(self, X, y=None, **fit_params):
         """Fit the transformer on X.
 
@@ -725,15 +722,19 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
 class InteractionCreator(BaseEstimator, TransformerMixin):
     """Creates interactions across columns of a ``DataFrame``
 
-    :param col: A list of columns to extract from the ``DataFrame``
-    :type col: list of strings
+    :param columns1: first list of columns to create interactions with each of
+    the second list of columns
+    :type columns1: list of strings
+    :param columns2: second list of columns to create interactions with each of
+    the second list of columns
+    :type columns2: list of strings
     """
     def __init__(self, columns1, columns2):
         self.columns1 = columns1
         self.columns2 = columns2
 
     def fit(self, X, y=None, **fit_params):
-        """Fit the creator on X. Checks that all columns are in X.
+        """Fit the transformer on X. Checks that all columns are in X.
 
         :param X: The input data.
         :type X: pandas DataFrame
@@ -762,7 +763,7 @@ class InteractionCreator(BaseEstimator, TransformerMixin):
         model_matrix = dmatrix(self.formula, data=X, return_type='dataframe')
         return pd.concat([X, model_matrix], axis=1)
 
-    
+
 class StandardScaler(BaseEstimator, TransformerMixin):
     """Standardize features by removing mean and scaling to unit variance
     """
@@ -782,7 +783,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         return self
 
     def fit_transform(self, X, y=None, **fit_params):
-        """Fit the validator on X.
+        """Fit and transform the StandardScaler on X.
 
         :param X: The input data.
         :type X: pandas DataFrame
@@ -795,17 +796,14 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         return X
 
     def transform(self, X, **transform_params):
-        """Checks whether a dataset to transform has the same columns as the
-        fitting dataset, and returns X with columns in the same order as the
-        dataset in fit.
+        """Transform X with the standard scaling
 
         :param X: The input data.
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with specified columns.
         """
-        ### ensure that columns are in same order as in fit
+        # ensure that columns are in same order as in fit
         X = X.copy()[self.columns]
         X_transform = self.ScikitStandardScaler.transform(X)
         X = pd.DataFrame(X_transform, columns=self.columns)
         return X
-

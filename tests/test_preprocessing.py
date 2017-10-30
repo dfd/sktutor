@@ -916,7 +916,7 @@ class TestBoxCoxTransformer(object):
 
     def test_fit_transfrom(self, full_data_numeric):
         # test default functionalty
-        prep = BoxCoxTransformer(drop=True)
+        prep = BoxCoxTransformer()
         result = prep.fit_transform(full_data_numeric)
         exp_dict = {'a': [0.71695113, 0.71695113, 0.71695113,
                           1.15921005, 1.48370246, 1.48370246,
@@ -935,7 +935,7 @@ class TestBoxCoxTransformer(object):
 
     def test_fit_then_transform(self, full_data_numeric):
         # test using fit then transform
-        prep = BoxCoxTransformer(drop=True)
+        prep = BoxCoxTransformer()
         prep.fit(full_data_numeric)
         result = prep.transform(full_data_numeric)
         exp_dict = {'a': [0.71695113, 0.71695113, 0.71695113,
