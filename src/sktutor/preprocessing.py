@@ -197,14 +197,14 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
     ``mapper`` takes the form::
 
        {'column_name': {'old_value1': 'new_value1',
-                        'old_value2': 'new_value1'},
+                        'old_value2': 'new_value1',
                         'old_value3': 'new_value2'}
         }
 
     while ``inverse_mapper`` takes the form::
 
-       {'column_name': {'new_value1': ['old_value1', 'old_value2']},
-                       {'new_value2': ['old_value1']}
+       {'column_name': {'new_value1': ['old_value1', 'old_value2'],
+                        'new_value2': ['old_value1']}
         }
     """
 
