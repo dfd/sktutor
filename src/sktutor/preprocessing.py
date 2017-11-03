@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import StandardScaler as ScikitStandardScaler
 import numpy as np
-from sktutor.utils import dict_factory, dict_default, bitwise_operator
+from sktutor.utils import dict_with_default, dict_default, bitwise_operator
 from scipy import stats
 from patsy import dmatrix
 
@@ -276,9 +276,11 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
     def __init__(self, factors_per_column=None):
         mapper = {}
         for col, specs in factors_per_column.items():
-            new_dict = dict_factory('new_dict', specs['default'])
+            # new_dict = dict_factory('new_dict', specs['default'])
             translation = {factor: factor for factor in specs['factors']}
-            mapper[col] = new_dict(translation)
+            new_dict = dict_with_default(specs['default'], translation)
+            # mapper[col] = new_dict(translation)
+            mapper[col] = new_dict
         self.mapper = mapper
 
     def fit(self, X, y=None):
