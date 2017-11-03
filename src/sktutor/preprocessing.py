@@ -677,7 +677,14 @@ class BitwiseOperator(BaseEstimator, TransformerMixin):
 
 class BoxCoxTransformer(BaseEstimator, TransformerMixin):
     """Create BoxCox Transformations on all columns.
+
+    :param adder: the amount to add to each column before the BoxCox
+    transformation
+    :type adder: numeric
     """
+
+    def __init__(self, adder=0):
+        self.adder = adder
 
     def fit(self, X, y=None, **fit_params):
         """Fit the transformer on X.
@@ -689,7 +696,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         self.columns = X.columns
         self.lambdas = dict()
         for col in self.columns:
-            self.lambdas[col] = stats.boxcox(X[col])[1]
+            self.lambdas[col] = stats.boxcox(X[col] + self.adder)[1]
         return self
 
     def fit_transform(self, X, y=None, **fit_params):
@@ -703,7 +710,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         self.columns = X.columns
         self.lambdas = dict()
         for col in self.columns:
-            X[col], self.lambdas[col] = stats.boxcox(X[col])
+            X[col], self.lambdas[col] = stats.boxcox(X[col] + self.adder)
         return X
 
     def transform(self, X, **transform_params):
@@ -716,7 +723,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         :rtype: A ``DataFrame`` with specified columns.
         """
         for col in self.lambdas:
-            X[col] = stats.boxcox(X[col], self.lambdas[col])
+            X[col] = stats.boxcox(X[col] + self.adder, self.lambdas[col])
         return X
 
 
