@@ -811,7 +811,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
 
 class ColumnNameCleaner(BaseEstimator, TransformerMixin):
     """Replaces spaces and formula symbols in column names that conflict with
-    patsy formulas
+    patsy formula interpretation
     """
 
     def fit(self, X, y=None, **fit_params):
@@ -825,6 +825,7 @@ class ColumnNameCleaner(BaseEstimator, TransformerMixin):
                         .str.strip()
                         .str.replace(' ', '_')
                         .str.replace('+', '_and_')
+                        .str.replace('*', '_by_')
                         .str.replace('/', '_or_')
                         .str.replace('-', '_')
                         .str.replace('(', '_')
