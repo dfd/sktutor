@@ -17,7 +17,8 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    ColumnDropper, DummyCreator,
                                    ColumnValidator, TextContainsDummyExtractor,
                                    BitwiseOperator, BoxCoxTransformer,
-                                   InteractionCreator, StandardScaler)
+                                   InteractionCreator, StandardScaler,
+                                   ColumnNameCleaner)
 import pandas as pd
 import pandas.util.testing as tm
 
@@ -1024,6 +1025,26 @@ class TestStandardScaler(object):
                           -0.17407766, 0.17407766, 0.52223297, 0.87038828,
                           1.21854359, 1.5666989]
                     }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
+
+@pytest.mark.usefixtures("column_name_data")
+class TestColumnNameCleaner(object):
+
+    def test_fit_transfrom(self, column_name_data):
+        # test default functionalty
+        prep = ColumnNameCleaner()
+        result = prep.fit_transform(column_name_data)
+        exp_dict = {'this_column': [1, 1],
+                    'that_and_column': [1, 1],
+                    'these_or_columns': [1, 1],
+                    'those_by_columns': [1, 1],
+                    'them_columns': [1, 1],
+                    '_thecolumns_': [1, 1]
+                    }
+
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)

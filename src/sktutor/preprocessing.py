@@ -44,7 +44,8 @@ class GroupByImputer(BaseEstimator, TransformerMixin):
         The type of imputation to be performed.
     :type impute_type: string
     :param group:
-        The column or a list of columns to group the ``pandas DataFrame``.
+        The column name or a list of column names to group the ``pandas
+        DataFrame``.
     :type group: string or list of strings
     """
 
@@ -197,14 +198,14 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
     ``mapper`` takes the form::
 
        {'column_name': {'old_value1': 'new_value1',
-                        'old_value2': 'new_value1'},
+                        'old_value2': 'new_value1',
                         'old_value3': 'new_value2'}
         }
 
     while ``inverse_mapper`` takes the form::
 
-       {'column_name': {'new_value1': ['old_value1', 'old_value2']},
-                       {'new_value2': ['old_value1']}
+       {'column_name': {'new_value1': ['old_value1', 'old_value2'],
+                        'new_value2': ['old_value1']}
         }
     """
 
@@ -676,7 +677,14 @@ class BitwiseOperator(BaseEstimator, TransformerMixin):
 
 class BoxCoxTransformer(BaseEstimator, TransformerMixin):
     """Create BoxCox Transformations on all columns.
+
+    :param adder: the amount to add to each column before the BoxCox
+    transformation
+    :type adder: numeric
     """
+
+    def __init__(self, adder=0):
+        self.adder = adder
 
     def fit(self, X, y=None, **fit_params):
         """Fit the transformer on X.
@@ -688,7 +696,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         self.columns = X.columns
         self.lambdas = dict()
         for col in self.columns:
-            self.lambdas[col] = stats.boxcox(X[col])[1]
+            self.lambdas[col] = stats.boxcox(X[col] + self.adder)[1]
         return self
 
     def fit_transform(self, X, y=None, **fit_params):
@@ -702,7 +710,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         self.columns = X.columns
         self.lambdas = dict()
         for col in self.columns:
-            X[col], self.lambdas[col] = stats.boxcox(X[col])
+            X[col], self.lambdas[col] = stats.boxcox(X[col] + self.adder)
         return X
 
     def transform(self, X, **transform_params):
@@ -715,7 +723,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         :rtype: A ``DataFrame`` with specified columns.
         """
         for col in self.lambdas:
-            X[col] = stats.boxcox(X[col], self.lambdas[col])
+            X[col] = stats.boxcox(X[col] + self.adder, self.lambdas[col])
         return X
 
 
@@ -806,4 +814,40 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         X = X.copy()[self.columns]
         X_transform = self.ScikitStandardScaler.transform(X)
         X = pd.DataFrame(X_transform, columns=self.columns)
+        return X
+
+
+class ColumnNameCleaner(BaseEstimator, TransformerMixin):
+    """Replaces spaces and formula symbols in column names that conflict with
+    patsy formula interpretation
+    """
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the transformer on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        self.columns = (X.columns
+                        .str.strip()
+                        .str.replace(' ', '_')
+                        .str.replace('+', '_and_')
+                        .str.replace('*', '_by_')
+                        .str.replace('/', '_or_')
+                        .str.replace('-', '_')
+                        .str.replace('(', '_')
+                        .str.replace(')', '_'))
+        return self
+
+    def transform(self, X, **transform_params):
+        """Transform X with clean column names for patsy
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
+        # ensure that columns are in same order as in fit
+        X = X.copy()
+        X.columns = self.columns
         return X

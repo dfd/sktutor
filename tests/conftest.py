@@ -160,3 +160,18 @@ def interaction_data():
                  }
     df = pd.DataFrame(data_dict)
     return df
+
+
+@pytest.fixture
+def column_name_data():
+    """Sample binary data for bitwise operators
+    """
+    data_dict = {' this column ': [1, 1],
+                 'that+column': [1, 1],
+                 'these/columns': [1, 1],
+                 'those*columns': [1, 1],
+                 'them-columns': [1, 1],
+                 '(thecolumns)': [1, 1]
+                 }
+    df = pd.DataFrame(data_dict)
+    return df
