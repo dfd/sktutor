@@ -44,7 +44,8 @@ class GroupByImputer(BaseEstimator, TransformerMixin):
         The type of imputation to be performed.
     :type impute_type: string
     :param group:
-        The column or a list of columns to group the ``pandas DataFrame``.
+        The column name or a list of column names to group the ``pandas
+        DataFrame``.
     :type group: string or list of strings
     """
 
@@ -833,7 +834,7 @@ class ColumnNameCleaner(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, **transform_params):
-        """Transform X with the standard scaling
+        """Transform X with clean column names for patsy
 
         :param X: The input data.
         :type X: pandas DataFrame
