@@ -1,6 +1,19 @@
 # -*- coding: utf-8 -*-
 
 
+class dict_with_default(dict):
+    """Dictionary that returns a default value when key is missing
+
+    :param default: default value to return when key is missing
+    """
+    def __init__(self, default, *args, **kwargs):
+        super(dict_with_default, self).__init__(*args, **kwargs)
+        self.default = default
+
+    def __missing__(self, key):
+        return self.default
+
+
 def dict_factory(name, default):
     """Return a subclass of dict with a default value
 
