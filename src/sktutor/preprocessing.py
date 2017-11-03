@@ -807,3 +807,38 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         X_transform = self.ScikitStandardScaler.transform(X)
         X = pd.DataFrame(X_transform, columns=self.columns)
         return X
+
+
+class ColumnNameCleaner(BaseEstimator, TransformerMixin):
+    """Replaces spaces and formula symbols in column names that conflict with
+    patsy formulas
+    """
+
+    def fit(self, X, y=None, **fit_params):
+        """Fit the transformer on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        self.columns = (X.columns
+                        .str.strip()
+                        .str.replace(' ', '_')
+                        .str.replace('+', '_and_')
+                        .str.replace('/', '_or_')
+                        .str.replace('-', '_')
+                        .str.replace('(', '_')
+                        .str.replace(')', '_'))
+        return self
+
+    def transform(self, X, **transform_params):
+        """Transform X with the standard scaling
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
+        # ensure that columns are in same order as in fit
+        X = X.copy()
+        X.columns = self.columns
+        return X
