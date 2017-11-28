@@ -72,6 +72,17 @@ def full_data_factors():
 
 
 @pytest.fixture
+def full_data_factors_subset():
+    """DataFrame with no missing factors values
+    """
+    data_dict = {'c': ['b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                 'd': ['d', 'e', 'f', 'g', 'h', 'j', 'j']
+                 }
+    df = pd.DataFrame(data_dict)
+    return df
+
+
+@pytest.fixture
 def full_data_numeric():
     """DataFrame with numeric data
     """

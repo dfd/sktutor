@@ -470,11 +470,17 @@ class DummyCreator(BaseEstimator, TransformerMixin):
     def __init__(self, **kwargs):
         self.kwargs = kwargs
 
-    def _get_dummies(self, X):
-        return pd.get_dummies(X, **self.kwargs)
+    def _get_dummies(self, X, fit):
+        if fit:
+            return pd.get_dummies(X, **self.kwargs)
+        else:
+            new_kwargs = self.kwargs.copy()
+            if 'drop_first' in self.kwargs:
+                del new_kwargs['drop_first']
+            return pd.get_dummies(X, **new_kwargs)
 
     def _fit(self, X):
-        X = self._get_dummies(X)
+        X = self._get_dummies(X, fit=True)
         self.columns = X.columns
         return X
 
@@ -507,7 +513,7 @@ class DummyCreator(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: A ``DataFrame`` with dummy variables.
         """
-        X = self._get_dummies(X)
+        X = self._get_dummies(X, fit=False)
         column_set = set(self.columns)
         data_column_set = set(X.columns)
         if column_set != data_column_set:
