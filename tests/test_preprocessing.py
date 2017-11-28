@@ -561,6 +561,7 @@ class TestColumnDropper(object):
 
 
 @pytest.mark.usefixtures("full_data_factors")
+@pytest.mark.usefixtures("full_data_factors_subset")
 @pytest.mark.usefixtures("missing_data_factors")
 class TestDummyCreator(object):
 
@@ -621,6 +622,27 @@ class TestDummyCreator(object):
                     'd_g': [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
                     'd_h': [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
                     'd_j': [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_drop_first_dummies_missing_levels(self, full_data_factors,
+                                               full_data_factors_subset):
+        # Test dropping first dummies for each column.
+        kwargs = {'drop_first': True}
+        prep = DummyCreator(**kwargs)
+        prep.fit(full_data_factors)
+        result = prep.transform(full_data_factors_subset)
+        exp_dict = {'c_b': [1, 1, 0, 0, 0, 0, 0],
+                    'c_c': [0, 0, 1, 1, 0, 0, 1],
+                    'd_b': [0, 0, 0, 0, 0, 0, 0],
+                    'd_c': [0, 0, 0, 0, 0, 0, 0],
+                    'd_d': [1, 0, 0, 0, 0, 0, 0],
+                    'd_e': [0, 1, 0, 0, 0, 0, 0],
+                    'd_f': [0, 0, 1, 0, 0, 0, 0],
+                    'd_g': [0, 0, 0, 1, 0, 0, 0],
+                    'd_h': [0, 0, 0, 0, 1, 0, 0],
+                    'd_j': [0, 0, 0, 0, 0, 1, 1]
                     }
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)
