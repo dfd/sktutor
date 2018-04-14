@@ -6,6 +6,7 @@ import numpy as np
 from sktutor.utils import dict_with_default, dict_default, bitwise_operator
 from scipy import stats
 from patsy import dmatrix
+import re
 
 
 def mode(x):
@@ -837,15 +838,14 @@ class ColumnNameCleaner(BaseEstimator, TransformerMixin):
         :type X: pandas DataFrame
         :rtype: Returns self.
         """
+        matcher = re.compile(r'[^A-Z0-9_]', flags=re.IGNORECASE)
         self.columns = (X.columns
                         .str.strip()
-                        .str.replace(' ', '_')
                         .str.replace('+', '_and_')
                         .str.replace('*', '_by_')
                         .str.replace('/', '_or_')
-                        .str.replace('-', '_')
-                        .str.replace('(', '_')
-                        .str.replace(')', '_'))
+                        .str.replace(matcher, '_'))
+        print(self.columns)
         return self
 
     def transform(self, X, **transform_params):
