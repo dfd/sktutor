@@ -3,13 +3,15 @@
 
 import pytest
 from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
-                                   ColumnExtractor, ColumnDropper)
+                                   ColumnExtractor, ColumnDropper,
+                                   ColumnValidator)
 from sktutor.pipeline import (FeatureUnion, make_union)
 from sklearn.pipeline import make_pipeline
 import pandas as pd
 import pandas.util.testing as tm
 import numpy as np
 from numpy.testing import assert_equal
+from random import shuffle
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -114,6 +116,50 @@ class TestFeatureUnion(object):
         print(expected)
         print(result)
         assert_equal(result, expected)
+
+    def test_feature_union(self, missing_data):
+        # Test FeatureUnion
+        new_index = list(missing_data.index)
+        shuffle(new_index)
+        missing_data.index = new_index
+
+        CONTINUOUS_FIELDS = missing_data.select_dtypes(
+            ['int64', 'float64']).columns.tolist()
+        FACTOR_FIELDS = missing_data.select_dtypes(['object']).columns
+        CONTINUOUS_FIELDS.append('b')
+
+        fu = FeatureUnion(
+            [('Continuous Pipeline', make_pipeline(
+                ColumnExtractor(CONTINUOUS_FIELDS),
+                ColumnValidator()
+            )),
+             ('Factor Pipeline', make_pipeline(
+                ColumnExtractor(FACTOR_FIELDS),
+             ))]
+        )
+
+        fu.fit(missing_data)
+        result = fu.transform(missing_data)
+
+        exp_dict = {'a': [2, 2, 2, 4, 4, 4, 7, 8, 8, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1.0, 2.0, 1.5, 4.0, 4.0, 4.0, 7.0, 9.0, 9.0, 9.0],
+                    'd': ['a', 'a', 'Missing', 'Missing', 'e', 'f', 'Missing',
+                          'h', 'j', 'j'],
+                    'e': [1, 2, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5],
+                    'f': ['a', 'b', 'Missing', 'Missing', 'Missing',
+                          'Missing', 'Missing', 'Missing', 'Missing',
+                          'Missing'],
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b',
+                          'Missing'],
+                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'Missing',
+                          'Missing']
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        expected = expected[['a', 'c', 'e', 'b', 'd', 'f', 'g', 'h']]
+        tm.assert_frame_equal(result, expected, check_dtype=False)
 
 
 @pytest.mark.usefixtures("missing_data")
