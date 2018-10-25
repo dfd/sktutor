@@ -17,10 +17,12 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    ColumnDropper, DummyCreator,
                                    ColumnValidator, TextContainsDummyExtractor,
                                    BitwiseOperator, BoxCoxTransformer,
-                                   InteractionCreator, StandardScaler)
+                                   InteractionCreator, StandardScaler,
+                                   PolynomialFeatures)
 import pandas as pd
 import pandas.util.testing as tm
 from random import shuffle
+from collections import OrderedDict
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -1407,3 +1409,115 @@ class TestStandardScaler(object):
         expected = pd.DataFrame(exp_dict, index=new_index)
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=False)
+
+@pytest.mark.usefixtures("full_data_numeric")
+class TestPolynomialFeatures(object):
+
+    def test_polynomial_features(self, full_data_numeric):
+        # test polynomial feature creation
+        prep = PolynomialFeatures(degree=3)
+
+        result = prep.fit_transform(full_data_numeric)
+        exp_dict = {
+            'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+            'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+            'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            'a^2': [4, 4, 4, 9, 16, 16, 49, 64, 64, 64],
+            'a*c': [2, 4, 6, 12, 16, 16, 49, 72, 72, 72],
+            'a*e': [2, 4, 6, 12, 20, 24, 49, 64, 72, 80],
+            'c^2': [1, 4, 9, 16, 16, 16, 49, 81, 81, 81],
+            'c*e': [1, 4, 9, 16, 20, 24, 49, 72, 81, 90],
+            'e^2': [1, 4, 9, 16, 25, 36, 49, 64, 81, 100],
+            'a^3': [8, 8, 8, 27, 64, 64, 343, 512, 512, 512],
+            'a^2*c': [4, 8, 12, 36, 64, 64, 343, 576, 576, 576],
+            'a^2*e': [4, 8, 12, 36, 80, 96, 343, 512, 576, 640],
+            'a*c^2': [2, 8, 18, 48, 64, 64, 343, 648, 648, 648],
+            'a*c*e': [2, 8, 18, 48, 80, 96, 343, 576, 648, 720],
+            'a*e^2': [2, 8, 18, 48, 100, 144, 343, 512, 648, 800],
+            'c^3': [1, 8, 27, 64, 64, 64, 343, 729, 729, 729],
+            'c^2*e': [1, 8, 27, 64, 80, 96, 343, 648, 729, 810],
+            'c*e^2': [1, 8, 27, 64, 100, 144, 343, 576, 729, 900],
+            'e^3': [1, 8, 27, 64, 125, 216, 343, 512, 729, 1000]
+        }
+        expected = pd.DataFrame(exp_dict)
+        expected = expected[[
+            'a', 'c', 'e', 'a^2', 'a*c', 'a*e',
+            'c^2', 'c*e', 'e^2', 'a^3', 'a^2*c',
+            'a^2*e', 'a*c^2', 'a*c*e', 'a*e^2',
+            'c^3', 'c^2*e', 'c*e^2', 'e^3'
+        ]]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_polynomial_features_interactions(self, full_data_numeric):
+        # test polynomial feature creation
+        prep = PolynomialFeatures(interaction_only=True)
+
+        result = prep.fit_transform(full_data_numeric)
+        exp_dict = {
+            'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+            'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+            'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            'a*c': [2, 4, 6, 12, 16, 16, 49, 72, 72, 72],
+            'a*e': [2, 4, 6, 12, 20, 24, 49, 64, 72, 80],
+            'c*e': [1, 4, 9, 16, 20, 24, 49, 72, 81, 90],
+        }
+        expected = pd.DataFrame(exp_dict)
+        expected = expected[[
+            'a', 'c', 'e', 'a*c', 'a*e','c*e',
+        ]]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_unordered_index(self, full_data_numeric):
+        # Test unordered index is handled properly
+        new_index = list(full_data_numeric.index)
+        shuffle(new_index)
+        full_data_numeric.index = new_index
+
+        # test polynomial feature creation
+        prep = PolynomialFeatures(degree=3)
+
+        result = prep.fit_transform(full_data_numeric)
+        exp_dict = {
+            'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+            'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+            'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            'a^2': [4, 4, 4, 9, 16, 16, 49, 64, 64, 64],
+            'a*c': [2, 4, 6, 12, 16, 16, 49, 72, 72, 72],
+            'a*e': [2, 4, 6, 12, 20, 24, 49, 64, 72, 80],
+            'c^2': [1, 4, 9, 16, 16, 16, 49, 81, 81, 81],
+            'c*e': [1, 4, 9, 16, 20, 24, 49, 72, 81, 90],
+            'e^2': [1, 4, 9, 16, 25, 36, 49, 64, 81, 100],
+            'a^3': [8, 8, 8, 27, 64, 64, 343, 512, 512, 512],
+            'a^2*c': [4, 8, 12, 36, 64, 64, 343, 576, 576, 576],
+            'a^2*e': [4, 8, 12, 36, 80, 96, 343, 512, 576, 640],
+            'a*c^2': [2, 8, 18, 48, 64, 64, 343, 648, 648, 648],
+            'a*c*e': [2, 8, 18, 48, 80, 96, 343, 576, 648, 720],
+            'a*e^2': [2, 8, 18, 48, 100, 144, 343, 512, 648, 800],
+            'c^3': [1, 8, 27, 64, 64, 64, 343, 729, 729, 729],
+            'c^2*e': [1, 8, 27, 64, 80, 96, 343, 648, 729, 810],
+            'c*e^2': [1, 8, 27, 64, 100, 144, 343, 576, 729, 900],
+            'e^3': [1, 8, 27, 64, 125, 216, 343, 512, 729, 1000]
+        }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        expected = expected[[
+            'a', 'c', 'e', 'a^2', 'a*c', 'a*e',
+            'c^2', 'c*e', 'e^2', 'a^3', 'a^2*c',
+            'a^2*e', 'a*c^2', 'a*c*e', 'a*e^2',
+            'c^3', 'c^2*e', 'c*e^2', 'e^3'
+        ]]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
