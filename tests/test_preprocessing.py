@@ -17,8 +17,7 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    ColumnDropper, DummyCreator,
                                    ColumnValidator, TextContainsDummyExtractor,
                                    BitwiseOperator, BoxCoxTransformer,
-                                   InteractionCreator, StandardScaler,
-                                   ColumnNameCleaner)
+                                   InteractionCreator, StandardScaler)
 import pandas as pd
 import pandas.util.testing as tm
 from random import shuffle
@@ -674,6 +673,7 @@ class TestColumnExtractor(object):
         expected = pd.DataFrame(exp_dict, index=new_index)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
+
 @pytest.mark.usefixtures("missing_data")
 class TestColumnDropper(object):
 
@@ -960,14 +960,13 @@ class TestColumnValidator(object):
 
         prep = ColumnValidator()
         prep.fit(full_data_factors)
-        new_dict = {'d': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j'],
-                    'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c']
-                    }
-        new_data = pd.DataFrame(new_dict)
-        result = prep.transform(new_data)
-        exp_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
-                    'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
-                    }
+        result = prep.transform(full_data_factors)
+
+        exp_dict = {
+            'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+            'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+        }
+
         expected = pd.DataFrame(exp_dict, index=new_index)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 

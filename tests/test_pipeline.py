@@ -3,8 +3,7 @@
 
 import pytest
 from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
-                                   ColumnExtractor, ColumnDropper,
-                                   ColumnValidator)
+                                   ColumnExtractor, ColumnDropper)
 from sktutor.pipeline import (FeatureUnion, make_union)
 from sklearn.pipeline import make_pipeline
 import pandas as pd
@@ -117,7 +116,7 @@ class TestFeatureUnion(object):
         print(result)
         assert_equal(result, expected)
 
-    def test_feature_union(self, missing_data):
+    def test_unordered_index(self, missing_data):
         # Test FeatureUnion
         new_index = list(missing_data.index)
         shuffle(new_index)
@@ -127,20 +126,20 @@ class TestFeatureUnion(object):
             ['int64', 'float64']).columns.tolist()
         FACTOR_FIELDS = missing_data.select_dtypes(['object']).columns
         CONTINUOUS_FIELDS.append('b')
-
         fu = FeatureUnion(
             [('Continuous Pipeline', make_pipeline(
                 ColumnExtractor(CONTINUOUS_FIELDS),
-                ColumnValidator()
+                GroupByImputer('median', 'b'),
+                ColumnDropper('b'),
+                GroupByImputer('median')
             )),
              ('Factor Pipeline', make_pipeline(
-                ColumnExtractor(FACTOR_FIELDS),
+                 ColumnExtractor(FACTOR_FIELDS),
+                 MissingValueFiller('Missing')
              ))]
         )
-
         fu.fit(missing_data)
         result = fu.transform(missing_data)
-
         exp_dict = {'a': [2, 2, 2, 4, 4, 4, 7, 8, 8, 8],
                     'b': ['123', '123', '123',
                           '234', '456', '456',
