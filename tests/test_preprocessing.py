@@ -22,7 +22,6 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
 import pandas as pd
 import pandas.util.testing as tm
 from random import shuffle
-from collections import OrderedDict
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -1410,6 +1409,7 @@ class TestStandardScaler(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=False)
 
+
 @pytest.mark.usefixtures("full_data_numeric")
 class TestPolynomialFeatures(object):
 
@@ -1468,7 +1468,7 @@ class TestPolynomialFeatures(object):
         }
         expected = pd.DataFrame(exp_dict)
         expected = expected[[
-            'a', 'c', 'e', 'a*c', 'a*e','c*e',
+            'a', 'c', 'e', 'a*c', 'a*e', 'c*e'
         ]]
 
         tm.assert_frame_equal(

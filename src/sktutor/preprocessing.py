@@ -864,6 +864,7 @@ class ColumnNameCleaner(BaseEstimator, TransformerMixin):
         X.columns = self.columns
         return X
 
+
 class PolynomialFeatures(BaseEstimator, TransformerMixin):
     def __init__(self, degree=2, interaction_only=False):
         self.degree = degree
