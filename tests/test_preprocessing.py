@@ -17,10 +17,10 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    ColumnDropper, DummyCreator,
                                    ColumnValidator, TextContainsDummyExtractor,
                                    BitwiseOperator, BoxCoxTransformer,
-                                   InteractionCreator, StandardScaler,
-                                   ColumnNameCleaner)
+                                   InteractionCreator, StandardScaler)
 import pandas as pd
 import pandas.util.testing as tm
+from random import shuffle
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -235,6 +235,30 @@ class TestGroupByImputer(object):
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
+    def test_unordered_index(self, missing_data):
+        # Test unordered index is handled properly
+        new_index = list(missing_data.index)
+        shuffle(new_index)
+        missing_data.index = new_index
+
+        prep = GroupByImputer('most_frequent', 'b')
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
+        exp_dict = {'a': [2, 2, 2, None, 4, 4, 7, 8, 8, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1.0, 2.0, 1.0, 4.0, 4.0, 4.0, 7.0, 9.0, 9.0, 9.0],
+                    'd': ['a', 'a', 'a', None, 'e', 'f', 'j', 'h', 'j', 'j'],
+                    'e': [1, 2, 1, None, None, None, None, None, None, None],
+                    'f': ['a', 'b', 'a', None, None, None, None, None, None,
+                          None],
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', 'a'],
+                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a']
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
 
 @pytest.mark.usefixtures("missing_data_factors")
 @pytest.mark.usefixtures("missing_data_numeric")
@@ -261,6 +285,21 @@ class TestMissingValueFiller(object):
                     'e': [1, 2, 0, 0, 0, 0, 0, 0, 0, 0]
                     }
         expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_unordered_index(self, missing_data_numeric):
+        # Test unordered index is handled properly
+        new_index = list(missing_data_numeric.index)
+        shuffle(new_index)
+        missing_data_numeric.index = new_index
+
+        prep = MissingValueFiller(0)
+        result = prep.fit_transform(missing_data_numeric)
+        exp_dict = {'a': [2, 2, 0, 0, 4, 4, 7, 8, 0, 8],
+                    'c': [1, 2, 0, 4, 4, 4, 7, 9, 0, 9],
+                    'e': [1, 2, 0, 0, 0, 0, 0, 0, 0, 0]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
 
@@ -293,6 +332,25 @@ class TestOverMissingThresholdDropper(object):
         with pytest.raises(ValueError):
             svatd = OverMissingThresholdDropper(-1)
             svatd
+
+    def test_unordered_index(self, missing_data):
+        # Test unordered index is handled properly
+        new_index = list(missing_data.index)
+        shuffle(new_index)
+        missing_data.index = new_index
+
+        prep = OverMissingThresholdDropper(.2)
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
+        exp_dict = {'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+                    'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
 
 
 @pytest.mark.usefixtures("full_data_factors")
@@ -367,6 +425,26 @@ class TestValueReplacer(object):
             prep = ValueReplacer()
             prep
 
+    def test_unordered_index(self, full_data_factors):
+        # Test unordered index is handled properly
+        new_index = list(full_data_factors.index)
+        shuffle(new_index)
+        full_data_factors.index = new_index
+
+        mapper = {'c': {'a': 'z', 'b': 'z'},
+                  'd': {'a': 'z', 'b': 'z', 'c': 'y', 'd': 'y', 'e': 'x',
+                        'f': 'x', 'g': 'w', 'h': 'w', 'j': 'w'
+                        }
+                  }
+        prep = ValueReplacer(mapper)
+        prep.fit(full_data_factors)
+        result = prep.transform(full_data_factors)
+        exp_dict = {'c': ['z', 'z', 'z', 'z', 'z', 'c', 'c', 'z', 'z', 'c'],
+                    'd': ['z', 'z', 'y', 'y', 'x', 'x', 'w', 'w', 'w', 'w']
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
 
 @pytest.mark.usefixtures("missing_data_factors")
 class TestFactorLimiter(object):
@@ -401,6 +479,28 @@ class TestFactorLimiter(object):
         fl = FactorLimiter(factors)
         with pytest.raises(ValueError):
             fl.fit(missing_data_factors)
+
+    def test_unordered_index(self, missing_data_factors):
+        # Test unordered index is handled properly
+        new_index = list(missing_data_factors.index)
+        shuffle(new_index)
+        missing_data_factors.index = new_index
+
+        factors = {'c': {'factors': ['a', 'b'],
+                         'default': 'a'
+                         },
+                   'd': {'factors': ['a', 'b', 'c', 'd'],
+                         'default': 'd'
+                         }
+                   }
+        prep = FactorLimiter(factors)
+        prep.fit(missing_data_factors)
+        result = prep.transform(missing_data_factors)
+        exp_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'a', 'a', 'a', 'a', 'a'],
+                    'd': ['a', 'a', 'd', 'd', 'd', 'd', 'd', 'd', 'd', 'd']
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -454,6 +554,25 @@ class TestSingleValueAboveThresholdDropper(object):
             prep = SingleValueAboveThresholdDropper(-1)
             prep
 
+    def test_unordered_index(self, missing_data):
+        # Test unordered index is handled properly
+        new_index = list(missing_data.index)
+        shuffle(new_index)
+        missing_data.index = new_index
+
+        prep = SingleValueAboveThresholdDropper(.7, dropna=False)
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
+        exp_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+                    'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j']
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
 
 @pytest.mark.usefixtures("single_values_data")
 class TestSingleValueDropper(object):
@@ -490,6 +609,27 @@ class TestSingleValueDropper(object):
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
+    def test_unordered_index(self, single_values_data):
+        # Test unordered index is handled properly
+        new_index = list(single_values_data.index)
+        shuffle(new_index)
+        single_values_data.index = new_index
+
+        prep = SingleValueDropper(dropna=False)
+        prep.fit(single_values_data)
+        result = prep.transform(single_values_data)
+        exp_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'd': [1, 1, 1, 1, 1, 1, 1, 1, 1, None],
+                    'e': [1, 2, None, None, None, None, None, None, None,
+                          None],
+                    'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
 
 @pytest.mark.usefixtures("missing_data")
 class TestColumnExtractor(object):
@@ -514,6 +654,24 @@ class TestColumnExtractor(object):
         prep = ColumnExtractor(['a', 'b', 'z'])
         with pytest.raises(ValueError):
             prep.fit(missing_data)
+
+    def test_unordered_index(self, missing_data):
+        # Test unordered index is handled properly
+        new_index = list(missing_data.index)
+        shuffle(new_index)
+        missing_data.index = new_index
+
+        prep = ColumnExtractor(['a', 'b', 'c'])
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
+        exp_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -558,6 +716,24 @@ class TestColumnDropper(object):
         prep = ColumnDropper(['a', 'b', 'z'])
         with pytest.raises(ValueError):
             prep.fit(missing_data)
+
+    def test_unordered_index(self, missing_data):
+        # Test unordered index is handled properly
+        new_index = list(missing_data.index)
+        shuffle(new_index)
+        missing_data.index = new_index
+
+        prep = ColumnDropper(['d', 'e', 'f', 'g', 'h'])
+        prep.fit(missing_data)
+        result = prep.transform(missing_data)
+        exp_dict = {'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+                    'b': ['123', '123', '123',
+                          '234', '456', '456',
+                          '789', '789', '789', '789'],
+                    'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
 
 
 @pytest.mark.usefixtures("full_data_factors")
@@ -710,6 +886,31 @@ class TestDummyCreator(object):
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
+    def test_unordered_index(self, full_data_factors):
+        # Test unordered index is handled properly
+        new_index = list(full_data_factors.index)
+        shuffle(new_index)
+        full_data_factors.index = new_index
+
+        prep = DummyCreator()
+        prep.fit(full_data_factors)
+        result = prep.transform(full_data_factors)
+        exp_dict = {'c_a': [1, 1, 1, 0, 0, 0, 0, 1, 1, 0],
+                    'c_b': [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+                    'c_c': [0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+                    'd_a': [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    'd_b': [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                    'd_c': [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                    'd_d': [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    'd_e': [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                    'd_f': [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                    'd_g': [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                    'd_h': [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                    'd_j': [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
 
 @pytest.mark.usefixtures("full_data_factors")
 class TestColumnValidator(object):
@@ -750,6 +951,24 @@ class TestColumnValidator(object):
         new_data = pd.DataFrame(new_dict)
         with pytest.raises(ValueError):
             prep.transform(new_data)
+
+    def test_unordered_index(self, full_data_factors):
+        # Test unordered index is handled properly
+        new_index = list(full_data_factors.index)
+        shuffle(new_index)
+        full_data_factors.index = new_index
+
+        prep = ColumnValidator()
+        prep.fit(full_data_factors)
+        result = prep.transform(full_data_factors)
+
+        exp_dict = {
+            'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+            'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+        }
+
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
 
 
 @pytest.mark.usefixtures("text_data")
@@ -813,6 +1032,45 @@ class TestTextContainsDummyExtractor(object):
         prep = TextContainsDummyExtractor(mapper)
         with pytest.raises(ValueError):
             prep.fit(text_data)
+
+    def test_unordered_index(self, text_data):
+        # Test unordered index is handled properly
+        new_index = list(text_data.index)
+        shuffle(new_index)
+        text_data.index = new_index
+
+        mapper = {'a':
+                  {'a_1':
+                   [{'pattern': 'birthday', 'kwargs': {'case': False}},
+                    {'pattern': 'bday', 'kwargs': {'case': False}}
+                    ],
+                   'a_2':
+                   [{'pattern': 'b.*day', 'kwargs': {'case': False}}
+                    ],
+                   },
+                  'b':
+                  {'b_1':
+                   [{'pattern': 'h.*r', 'kwargs': {'case': False}}
+                    ],
+                   'b_2':
+                   [{'pattern': '!', 'kwargs': {'case': False}},
+                    ]
+                   }
+                  }
+        prep = TextContainsDummyExtractor(mapper)
+        prep.fit(text_data)
+        result = prep.transform(text_data)
+        exp_dict = {'a': ['Happy Birthday!', 'It\'s your  bday!'],
+                    'b': ['Happy Arbor Day!', 'Happy Gilmore'],
+                    'c': ['a', 'b'],
+                    'a_1': [1, 1],
+                    'a_2': [1, 1],
+                    'b_1': [1, 1],
+                    'b_2': [1, 0]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
 
 
 @pytest.mark.usefixtures("boolean_data")
@@ -933,6 +1191,33 @@ class TestBitwiseOperator(object):
         with pytest.raises(ValueError):
             prep.fit(text_data)
 
+    def test_unordered_index(self, boolean_data):
+        # Test unordered index is handled properly
+        new_index = list(boolean_data.index)
+        shuffle(new_index)
+        boolean_data.index = new_index
+
+        mapper = {
+            'f': ['c', 'd', 'e'],
+            'g': ['a', 'b']
+        }
+
+        prep = BitwiseOperator('or', mapper)
+        prep.fit(boolean_data)
+        result = prep.transform(boolean_data)
+        exp_dict = {'a': [True, True, False, False],
+                    'b': [True, False, False, True],
+                    'c': [False, True, True, False],
+                    'd': [True, False, True, False],
+                    'e': [False, True, False, True],
+                    'f': [1, 1, 1, 1],
+                    'g': [1, 1, 0, 1],
+                    }
+
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
 
 @pytest.mark.usefixtures("full_data_numeric")
 class TestBoxCoxTransformer(object):
@@ -976,6 +1261,29 @@ class TestBoxCoxTransformer(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 
+    def test_unordered_index(self, full_data_numeric):
+        # Test unordered index is handled properly
+        new_index = list(full_data_numeric.index)
+        shuffle(new_index)
+        full_data_numeric.index = new_index
+
+        prep = BoxCoxTransformer()
+        result = prep.fit_transform(full_data_numeric)
+        exp_dict = {'a': [0.71695113, 0.71695113, 0.71695113,
+                          1.15921005, 1.48370246, 1.48370246,
+                          2.1414305, 2.30371316, 2.30371316,
+                          2.30371316],
+                    'c': [0., 0.8310186, 1.47159953, 2.0132148,
+                          2.0132148, 2.0132148, 3.32332097, 4.0444457,
+                          4.0444457, 4.0444457],
+                    'e': [0., 0.89952678, 1.67649211, 2.38322965,
+                          3.04195191, 3.66477648, 4.25925117,
+                          4.83048775,  5.38215505,  5.91700138]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
 
 @pytest.mark.usefixtures("interaction_data")
 class TestInteractionCreator(object):
@@ -1009,6 +1317,32 @@ class TestInteractionCreator(object):
 
         with pytest.raises(ValueError):
             prep.fit_transform(interaction_data)
+
+    def test_unordered_index(self, interaction_data):
+        # Test unordered index is handled properly
+        new_index = list(interaction_data.index)
+        shuffle(new_index)
+        interaction_data.index = new_index
+
+        prep = InteractionCreator(columns1=['a', 'b'],
+                                  columns2=['c', 'd', 'e'])
+        result = prep.fit_transform(interaction_data)
+        exp_dict = {'a': [2, 3, 4, 5],
+                    'b': [1, 0, 0, 1],
+                    'c': [0, 1, 1, 0],
+                    'd': [1, 0, 1, 0],
+                    'e': [0, 1, 0, 1],
+                    'a:c': [0, 3, 4, 0],
+                    'a:d': [2, 0, 4, 0],
+                    'a:e': [0, 3, 0, 5],
+                    'b:c': [0, 0, 0, 0],
+                    'b:d': [1, 0, 0, 0],
+                    'b:e': [0, 0, 0, 1]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        print(result)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
 
 
 @pytest.mark.usefixtures("full_data_numeric")
@@ -1051,22 +1385,25 @@ class TestStandardScaler(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 
+    def test_unordered_index(self, full_data_numeric):
+        # Test unordered index is handled properly
+        new_index = list(full_data_numeric.index)
+        shuffle(new_index)
+        full_data_numeric.index = new_index
 
-@pytest.mark.usefixtures("column_name_data")
-class TestColumnNameCleaner(object):
-
-    def test_fit_transfrom(self, column_name_data):
-        # test default functionalty
-        prep = ColumnNameCleaner()
-        result = prep.fit_transform(column_name_data)
-        exp_dict = {'this_column': [1, 1],
-                    'that_and_column': [1, 1],
-                    'these_or_columns': [1, 1],
-                    'those_by_columns': [1, 1],
-                    'them_columns': [1, 1],
-                    '_thecolumns_': [1, 1]
+        prep = StandardScaler()
+        prep.fit(full_data_numeric)
+        result = prep.transform(full_data_numeric)
+        exp_dict = {'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
+                          -0.31722063, -0.31722063, 0.87235674, 1.26888254,
+                          1.26888254, 1.26888254],
+                    'c': [-1.45260037, -1.10674314, -0.76088591, -0.41502868,
+                          -0.41502868, -0.41502868, 0.62254302, 1.31425748,
+                          1.31425748, 1.31425748],
+                    'e': [-1.5666989, -1.21854359, -0.87038828, -0.52223297,
+                          -0.17407766, 0.17407766, 0.52223297, 0.87038828,
+                          1.21854359, 1.5666989],
                     }
-
-        expected = pd.DataFrame(exp_dict)
+        expected = pd.DataFrame(exp_dict, index=new_index)
         tm.assert_frame_equal(result, expected, check_dtype=False,
-                              check_like=True)
+                              check_like=False)

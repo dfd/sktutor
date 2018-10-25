@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import StandardScaler as ScikitStandardScaler
+from sklearn.preprocessing import (
+    StandardScaler as ScikitStandardScaler
+)
 import numpy as np
 from sktutor.utils import dict_with_default, dict_default, bitwise_operator
 from scipy import stats
@@ -558,7 +560,7 @@ class ColumnValidator(BaseEstimator, TransformerMixin):
         elif len(set(X.columns) - set(self.columns)) > 0:
             raise ValueError("New data has columns not in the original data: "
                              + ', '.join(set(X.columns) - set(self.columns)))
-        return pd.DataFrame(X[self.columns])
+        return pd.DataFrame(X[self.columns], index=X.index)
 
 
 class TextContainsDummyExtractor(BaseEstimator, TransformerMixin):
@@ -809,7 +811,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         X = X.copy()
         self.columns = X.columns
         X_transform = self.ScikitStandardScaler.fit_transform(X)
-        X = pd.DataFrame(X_transform, columns=self.columns)
+        X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
         return X
 
     def transform(self, X, **transform_params):
@@ -822,7 +824,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         # ensure that columns are in same order as in fit
         X = X.copy()[self.columns]
         X_transform = self.ScikitStandardScaler.transform(X)
-        X = pd.DataFrame(X_transform, columns=self.columns)
+        X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
         return X
 
 
