@@ -24,11 +24,24 @@ class FeatureUnion(SKFeatureUnion):
         self._validate_transformers()
         if _sklearn_version == 'old':
             result = Parallel(n_jobs=self.n_jobs)(
-                delayed(_fit_transform_one)(transformer=trans, name=name, weight=weight, X=X, y=y, **fit_params)
+                delayed(_fit_transform_one)(
+                    transformer=trans,
+                    name=name,
+                    weight=weight,
+                    X=X,
+                    y=y,
+                    **fit_params
+                )
                 for name, trans, weight in self._iter())
         else:
             result = Parallel(n_jobs=self.n_jobs)(
-                delayed(_fit_transform_one)(transformer=trans, weight=weight, X=X, y=y, **fit_params)
+                delayed(_fit_transform_one)(
+                    transformer=trans,
+                    weight=weight,
+                    X=X,
+                    y=y,
+                    **fit_params
+                )
                 for name, trans, weight in self._iter())
         if not result:
             # All transformers are None
@@ -48,11 +61,21 @@ class FeatureUnion(SKFeatureUnion):
 
         if _sklearn_version == 'old':
             Xs = Parallel(n_jobs=self.n_jobs)(
-                delayed(_transform_one)(transforme=trans, name=name, weight=weight, X=X)
+                delayed(_transform_one)(
+                    transforme=trans,
+                    name=name,
+                    weight=weight,
+                    X=X
+                )
                 for name, trans, weight in self._iter())
         else:
             Xs = Parallel(n_jobs=self.n_jobs)(
-                delayed(_transform_one)(transformer=trans, weight=weight, X=X, y=None)
+                delayed(_transform_one)(
+                    transformer=trans,
+                    weight=weight,
+                    X=X,
+                    y=None
+                )
                 for name, trans, weight in self._iter())
         if not Xs:
             # All transformers are None
