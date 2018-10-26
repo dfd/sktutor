@@ -1409,6 +1409,23 @@ class TestStandardScaler(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=False)
 
+    def test_inverse_transform(self, full_data_numeric):
+        # test inverse_transform
+        new_index = list(full_data_numeric.index)
+        shuffle(new_index)
+        full_data_numeric.index = new_index
+
+        prep = StandardScaler()
+        transformed = prep.fit_transform(full_data_numeric)
+        original = prep.inverse_transform(transformed)
+
+        tm.assert_frame_equal(
+            full_data_numeric,
+            original,
+            check_dtype=False,
+            check_like=True
+        )
+
 
 @pytest.mark.usefixtures("full_data_numeric")
 class TestPolynomialFeatures(object):

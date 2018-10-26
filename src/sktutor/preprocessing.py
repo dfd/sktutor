@@ -829,6 +829,19 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
         return X
 
+    def inverse_transform(self, X, **transform_params):
+        """Inverse transform X with the standard scaling
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
+        # ensure that columns are in same order as in fit
+        X = X.copy()[self.columns]
+        X_transform = self.ScikitStandardScaler.inverse_transform(X)
+        X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
+        return X
+
 
 class ColumnNameCleaner(BaseEstimator, TransformerMixin):
     """Replaces spaces and formula symbols in column names that conflict with
