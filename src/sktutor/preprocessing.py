@@ -933,3 +933,52 @@ class PolynomialFeatures(BaseEstimator, TransformerMixin):
         )
 
         return X_transform
+
+
+class ContinuousFeatureBinner(BaseEstimator, TransformerMixin):
+    """Creates bins for continuous features
+
+    :param field: the continuous field for which to create bins
+    :type field: string
+
+    :param bins: The criteria to bin by.
+    :type bins: array-like
+
+    :param left_inclusive: interval should be left-inclusive or not
+    :type left_inclusive: bool
+
+    :param right_inclusive: interval should be right-inclusive or not
+    :type right_inclusive: bool
+    """
+    def __init__(self, field, bins, right_inclusive=True):
+        self.field = field
+        self.bins = bins
+        self.right_inclusive = right_inclusive
+
+    def transform(self, df):
+        if self.field not in df.columns:
+            raise ValueError('Field not found in dataframe.')
+
+        # use pandas.cut() to create bins
+        df[str(self.field) + str('_GRP')] = pd.cut(
+            x=df[self.field],
+            bins=self.bins,
+            right=self.right_inclusive
+        )
+
+        # return labels as strings
+        df[str(self.field) + str('_GRP')] = (
+            df[str(self.field) + str('_GRP')].astype('str')
+        )
+
+        # label everything not in a bin as 'Other'
+        df[str(self.field) + str('_GRP')] = (
+            df[str(self.field) + str('_GRP')]
+                .replace('nan', np.NaN)
+                .fillna(value='Other')
+        )
+
+        return df
+
+    def fit(self, df):
+        return self

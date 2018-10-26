@@ -18,7 +18,8 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    ColumnValidator, TextContainsDummyExtractor,
                                    BitwiseOperator, BoxCoxTransformer,
                                    InteractionCreator, StandardScaler,
-                                   PolynomialFeatures)
+                                   PolynomialFeatures, ContinuousFeatureBinner)
+import numpy as np
 import pandas as pd
 import pandas.util.testing as tm
 from random import shuffle
@@ -1532,6 +1533,175 @@ class TestPolynomialFeatures(object):
             'a^2*e', 'a*c^2', 'a*c*e', 'a*e^2',
             'c^3', 'c^2*e', 'c*e^2', 'e^3'
         ]]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+
+@pytest.mark.usefixtures("missing_data")
+class TestContinuousFeatureBinner(object):
+
+    def test_feature_binning(self, missing_data):
+        # test standard use
+        prep = ContinuousFeatureBinner(
+            field='a',
+            bins=[0, 3, 6, 9]
+        )
+        result = prep.fit_transform(missing_data)
+
+        expected = {
+            'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+            'b': ['123', '123', '123', '234', '456',
+                  '456', '789', '789', '789', '789'],
+            'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'e': [1, 2, None, None, None, None, None, None, None, None],
+            'f': ['a', 'b', None, None, None, None, None, None, None,None],
+            'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+            'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
+            'a_GRP': ['(0, 3]', '(0, 3]', 'Other', 'Other', '(3, 6]',
+                      '(3, 6]', '(6, 9]', '(6, 9]', 'Other', '(6, 9]']
+        }
+        expected = pd.DataFrame(expected, index=missing_data.index)
+        expected = expected[['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'a_GRP']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_missing_field_error(self, missing_data):
+        # test that specifying a field that doesn't exist returns error
+        prep = ContinuousFeatureBinner(
+            field='x',
+            bins=[0, 3, 6, 9]
+        )
+
+        with pytest.raises(ValueError):
+            prep.fit_transform(missing_data)
+
+    def test_feature_binning_right(self, missing_data):
+        # test standard use
+        prep = ContinuousFeatureBinner(
+            field='a',
+            bins=[0, 4, 8],
+            right_inclusive=False
+        )
+        result = prep.fit_transform(missing_data)
+        expected = {
+            'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+            'b': ['123', '123', '123', '234', '456',
+                  '456', '789', '789', '789', '789'],
+            'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'e': [1, 2, None, None, None, None, None, None, None, None],
+            'f': ['a', 'b', None, None, None, None, None, None, None, None],
+            'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+            'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
+            'a_GRP': ['[0, 4)', '[0, 4)', 'Other', 'Other', '[4, 8)',
+                      '[4, 8)', '[4, 8)', 'Other', 'Other', 'Other']
+        }
+        expected = pd.DataFrame(expected, index=missing_data.index)
+        expected = expected[['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'a_GRP']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_feature_binning_range(self, missing_data):
+        # test use with range()
+        prep = ContinuousFeatureBinner(
+            field='a',
+            bins=range(10)
+        )
+        result = prep.fit_transform(missing_data)
+
+        expected = {
+            'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+            'b': ['123', '123', '123', '234', '456',
+                  '456', '789', '789', '789', '789'],
+            'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'e': [1, 2, None, None, None, None, None, None, None, None],
+            'f': ['a', 'b', None, None, None, None, None, None, None,None],
+            'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+            'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
+            'a_GRP': ['(1, 2]', '(1, 2]', 'Other', 'Other', '(3, 4]',
+                      '(3, 4]', '(6, 7]', '(7, 8]', 'Other', '(7, 8]']
+        }
+        expected = pd.DataFrame(expected, index=missing_data.index)
+        expected = expected[['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'a_GRP']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_feature_binning_numpy_range(self, missing_data):
+        # test standard use
+        prep = ContinuousFeatureBinner(
+            field='a',
+            bins=np.arange(0, 10, 3)
+        )
+        result = prep.fit_transform(missing_data)
+
+        expected = {
+            'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+            'b': ['123', '123', '123', '234', '456',
+                  '456', '789', '789', '789', '789'],
+            'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'e': [1, 2, None, None, None, None, None, None, None, None],
+            'f': ['a', 'b', None, None, None, None, None, None, None,None],
+            'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+            'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
+            'a_GRP': ['(0, 3]', '(0, 3]', 'Other', 'Other', '(3, 6]',
+                      '(3, 6]', '(6, 9]', '(6, 9]', 'Other', '(6, 9]']
+        }
+        expected = pd.DataFrame(expected, index=missing_data.index)
+        expected = expected[['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'a_GRP']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_unordered_index(self, missing_data):
+        # Test unordered index is handled properly
+        new_index = list(missing_data.index)
+        shuffle(new_index)
+        missing_data.index = new_index
+
+        # test standard use
+        prep = ContinuousFeatureBinner(
+            field='a',
+            bins=[0, 3, 6, 9]
+        )
+        result = prep.fit_transform(missing_data)
+
+        expected = {
+            'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+            'b': ['123', '123', '123', '234', '456',
+                  '456', '789', '789', '789', '789'],
+            'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'e': [1, 2, None, None, None, None, None, None, None, None],
+            'f': ['a', 'b', None, None, None, None, None, None, None, None],
+            'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+            'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
+            'a_GRP': ['(0, 3]', '(0, 3]', 'Other', 'Other', '(3, 6]',
+                      '(3, 6]', '(6, 9]', '(6, 9]', 'Other', '(6, 9]']
+        }
+        expected = pd.DataFrame(expected, index=missing_data.index)
+        expected = expected[['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'a_GRP']]
 
         tm.assert_frame_equal(
             result,
