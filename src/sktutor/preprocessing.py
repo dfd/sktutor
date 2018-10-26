@@ -971,8 +971,8 @@ class ContinuousFeatureBinner(BaseEstimator, TransformerMixin):
         # label everything not in a bin as 'Other'
         df[str(self.field) + str('_GRP')] = (
             df[str(self.field) + str('_GRP')]
-                .replace('nan', np.NaN)
-                .fillna(value='Other')
+            .replace('nan', np.NaN)
+            .fillna(value='Other')
         )
 
         return df
