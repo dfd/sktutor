@@ -1007,3 +1007,32 @@ class TypeExtractor(BaseEstimator, TransformerMixin):
 
         print('Selected fields: ' + str(self.selected_fields))
         return self
+
+
+class GenericTransformer(BaseEstimator, TransformerMixin):
+    """Generic transformer that applies user-defined function within
+    pipeline framework. Arbitrary callable should only make transformations
+    and does not store any fit() parameters. Lambda functions are not supported
+    as they cannot be pickled.
+
+    :param function: arbitrary function to use as a transformer
+    :type function: callable
+
+    :param params: dict with function parameter name as key and parameter value
+    as value
+    :type params: dict
+    """
+    def __init__(self, function, params=None):
+        self.function = function
+        self.params = params
+
+    def transform(self, X, **transform_params):
+        if self.params is None:
+            X_transform = self.function(X)
+        else:
+            X_transform = self.function(X, **self.params)
+
+        return X_transform
+
+    def fit(self, X, y=None, **fit_params):
+        return self

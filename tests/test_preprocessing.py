@@ -19,7 +19,7 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    BitwiseOperator, BoxCoxTransformer,
                                    InteractionCreator, StandardScaler,
                                    PolynomialFeatures, ContinuousFeatureBinner,
-                                   TypeExtractor)
+                                   TypeExtractor, GenericTransformer)
 from sktutor.pipeline import make_union
 import numpy as np
 import pandas as pd
@@ -1809,3 +1809,111 @@ class TestTypeExtractor(object):
         expected = expected[['a', 'c', 'e']]
 
         tm.assert_frame_equal(result, expected, check_dtype=False)
+
+
+@pytest.mark.usefixtures("missing_data2")
+class TestGenericTransformer(object):
+
+    def test_generic_transformer(self, missing_data2):
+        # test simple function use
+        def add_bias(df):
+            df['bias'] = 1
+            return df
+
+        prep = GenericTransformer(add_bias)
+        result = prep.fit_transform(missing_data2)
+
+        data_dict = {
+            'a': [1, 2, None, None, 4, 4, 7, 8, None, 8],
+            'b': ['123', '123', '123', '123', '123', '789',
+                  '789', '789', '789', '789'],
+            'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'bias': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        }
+        expected = pd.DataFrame(data_dict)
+        expected = expected[['a', 'b', 'c', 'd', 'bias']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_generic_transformer_pipe_parameters(self, missing_data2):
+        # test with function that takes parameters in a pipeline
+        def add_bias(df):
+            df['bias'] = 1
+            return df
+
+        def add_columns(df, col1, col2):
+            df['new_col'] = df[col1] + df[col2]
+            return df
+
+        prep = make_pipeline(
+            GenericTransformer(add_bias),
+            GenericTransformer(
+                function=add_columns,
+                params={'col1': 'a', 'col2': 'bias'}
+            )
+        )
+        result = prep.fit_transform(missing_data2)
+
+        data_dict = {
+            'a': [1, 2, None, None, 4, 4, 7, 8, None, 8],
+            'b': ['123', '123', '123', '123', '123', '789',
+                  '789', '789', '789', '789'],
+            'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'bias': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            'new_col': [2, 3, None, None, 5, 5, 8, 9, None, 9]
+        }
+        expected = pd.DataFrame(data_dict)
+        expected = expected[['a', 'b', 'c', 'd', 'bias', 'new_col']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_generic_transformer_unordered(self, missing_data2):
+        # Test unordered index is handled properly
+        new_index = list(missing_data2.index)
+        shuffle(new_index)
+        missing_data2.index = new_index
+
+        def add_bias(df):
+            df['bias'] = 1
+            return df
+
+        def add_columns(df, col1, col2):
+            df['new_col'] = df[col1] + df[col2]
+            return df
+
+        prep = make_pipeline(
+            GenericTransformer(add_bias),
+            GenericTransformer(
+                function=add_columns,
+                params={'col1': 'a', 'col2': 'bias'}
+            )
+        )
+        result = prep.fit_transform(missing_data2)
+
+        data_dict = {
+            'a': [1, 2, None, None, 4, 4, 7, 8, None, 8],
+            'b': ['123', '123', '123', '123', '123', '789',
+                  '789', '789', '789', '789'],
+            'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'bias': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            'new_col': [2, 3, None, None, 5, 5, 8, 9, None, 9]
+        }
+        expected = pd.DataFrame(data_dict, index=new_index)
+        expected = expected[['a', 'b', 'c', 'd', 'bias', 'new_col']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
