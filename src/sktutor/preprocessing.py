@@ -944,9 +944,6 @@ class ContinuousFeatureBinner(BaseEstimator, TransformerMixin):
     :param bins: The criteria to bin by.
     :type bins: array-like
 
-    :param left_inclusive: interval should be left-inclusive or not
-    :type left_inclusive: bool
-
     :param right_inclusive: interval should be right-inclusive or not
     :type right_inclusive: bool
     """
