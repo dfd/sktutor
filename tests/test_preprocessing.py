@@ -18,11 +18,14 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    ColumnValidator, TextContainsDummyExtractor,
                                    BitwiseOperator, BoxCoxTransformer,
                                    InteractionCreator, StandardScaler,
-                                   PolynomialFeatures, ContinuousFeatureBinner)
+                                   PolynomialFeatures, ContinuousFeatureBinner,
+                                   TypeExtractor)
+from sktutor.pipeline import make_union
 import numpy as np
 import pandas as pd
 import pandas.util.testing as tm
 from random import shuffle
+from sklearn.pipeline import make_pipeline
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -1708,3 +1711,101 @@ class TestContinuousFeatureBinner(object):
             expected,
             check_dtype=False,
         )
+
+
+@pytest.mark.usefixtures("missing_data")
+class TestTypeExtractor(object):
+
+    def test_type_extractor_numeric(self, missing_data):
+        # test standard use
+        prep = TypeExtractor('numeric')
+        result = prep.fit_transform(missing_data)
+
+        expected = {
+            'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+            'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+            'e': [1, 2, None, None, None, None, None, None, None, None],
+        }
+        expected = pd.DataFrame(expected, index=missing_data.index)
+        expected = expected[['a', 'c', 'e']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_type_extractor_categorical(self, missing_data):
+        # test standard use
+        prep = TypeExtractor('categorical')
+        result = prep.fit_transform(missing_data)
+
+        expected = {
+            'b': ['123', '123', '123', '234', '456',
+                  '456', '789', '789', '789', '789'],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'f': ['a', 'b', None, None, None, None, None, None, None, None],
+            'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+            'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
+        }
+        expected = pd.DataFrame(expected, index=missing_data.index)
+        expected = expected[['b', 'd', 'f', 'g', 'h']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_type_extractor_feature_union(self, missing_data):
+        # test in typical use case with FeatureUnion()
+        fu = make_union(
+            make_pipeline(
+                TypeExtractor('numeric'),
+            ),
+            make_pipeline(
+                TypeExtractor('categorical'),
+            )
+        )
+        result = fu.fit_transform(missing_data)
+
+        exp_dict = {
+            'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+            'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+            'e': [1, 2, None, None, None, None, None, None, None, None],
+            'b': ['123', '123', '123', '234', '456',
+                  '456', '789', '789', '789', '789'],
+            'd': ['a', 'a', None, None, 'e', 'f', None, 'h', 'j', 'j'],
+            'f': ['a', 'b', None, None, None, None, None, None, None, None],
+            'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
+            'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
+        }
+        expected = pd.DataFrame(exp_dict)
+        expected = expected[['a', 'c', 'e', 'b', 'd', 'f', 'g', 'h']]
+
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_type_extractor_feature_union_none(self, missing_data):
+        # test in typical use case with FeatureUnion() with one dtype
+        # without results
+        missing_data = missing_data[['a', 'c', 'e']]
+
+        fu = make_union(
+            make_pipeline(
+                TypeExtractor('numeric'),
+            ),
+            make_pipeline(
+                TypeExtractor('categorical'),
+            )
+        )
+        result = fu.fit_transform(missing_data)
+
+        exp_dict = {
+            'a': [2, 2, None, None, 4, 4, 7, 8, None, 8],
+            'c': [1, 2, None, 4, 4, 4, 7, 9, None, 9],
+            'e': [1, 2, None, None, None, None, None, None, None, None],
+        }
+        expected = pd.DataFrame(exp_dict)
+        expected = expected[['a', 'c', 'e']]
+
+        tm.assert_frame_equal(result, expected, check_dtype=False)

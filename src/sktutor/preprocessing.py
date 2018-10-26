@@ -979,3 +979,31 @@ class ContinuousFeatureBinner(BaseEstimator, TransformerMixin):
 
     def fit(self, df):
         return self
+
+
+class TypeExtractor(BaseEstimator, TransformerMixin):
+    """Returns dataframe with only specified field type
+
+    :param type: desired type; either 'numeric' or 'categorical'
+    :type type: string
+    """
+    def __init__(self, type):
+        self.type = type
+
+    def transform(self, df, **transform_params):
+        df = df[self.selected_fields]
+        return df
+
+    def fit(self, df, **fit_params):
+        if self.type == 'numeric':
+            df = df.select_dtypes(include=[np.number])
+            self.selected_fields = list(df.columns)
+
+        elif self.type == 'categorical':
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+            cat_cols = [col for col in df.columns if col not in numeric_cols]
+            df = df[cat_cols]
+            self.selected_fields = cat_cols
+
+        print('Selected fields: ' + str(self.selected_fields))
+        return self
