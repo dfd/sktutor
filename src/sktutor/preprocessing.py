@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import StandardScaler as ScikitStandardScaler
+from sklearn.preprocessing import (
+    StandardScaler as ScikitStandardScaler,
+    PolynomialFeatures as ScikitPolynomialFeatures
+)
 import numpy as np
 from sktutor.utils import dict_with_default, dict_default, bitwise_operator
 from scipy import stats
 from patsy import dmatrix
 import re
+from collections import OrderedDict
 
 
 def mode(x):
@@ -558,7 +562,7 @@ class ColumnValidator(BaseEstimator, TransformerMixin):
         elif len(set(X.columns) - set(self.columns)) > 0:
             raise ValueError("New data has columns not in the original data: "
                              + ', '.join(set(X.columns) - set(self.columns)))
-        return pd.DataFrame(X[self.columns])
+        return pd.DataFrame(X[self.columns], index=X.index)
 
 
 class TextContainsDummyExtractor(BaseEstimator, TransformerMixin):
@@ -809,7 +813,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         X = X.copy()
         self.columns = X.columns
         X_transform = self.ScikitStandardScaler.fit_transform(X)
-        X = pd.DataFrame(X_transform, columns=self.columns)
+        X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
         return X
 
     def transform(self, X, **transform_params):
@@ -822,7 +826,20 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         # ensure that columns are in same order as in fit
         X = X.copy()[self.columns]
         X_transform = self.ScikitStandardScaler.transform(X)
-        X = pd.DataFrame(X_transform, columns=self.columns)
+        X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
+        return X
+
+    def inverse_transform(self, X, **transform_params):
+        """Inverse transform X with the standard scaling
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
+        # ensure that columns are in same order as in fit
+        X = X.copy()[self.columns]
+        X_transform = self.ScikitStandardScaler.inverse_transform(X)
+        X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
         return X
 
 
@@ -859,3 +876,163 @@ class ColumnNameCleaner(BaseEstimator, TransformerMixin):
         X = X.copy()
         X.columns = self.columns
         return X
+
+
+class PolynomialFeatures(BaseEstimator, TransformerMixin):
+    def __init__(self, degree=2, interaction_only=False):
+        self.degree = degree
+        self.interaction_only = interaction_only
+        self.ScikitPolynomialFeatures = ScikitPolynomialFeatures(
+            degree=self.degree,
+            interaction_only=self.interaction_only,
+            include_bias=False
+        )
+
+    def fit(self, X, **fit_params):
+        self.columns = X.columns
+        self.ScikitPolynomialFeatures.fit(X.values)
+
+        # get polynomial feature names
+        self.poly_feat = [
+            str(e) for e in self.ScikitPolynomialFeatures.get_feature_names()
+            if 'x' in e
+        ]
+
+        # for each polynomial feature name (x0, x1, etc)
+        # map to df column name
+        self.name_dict = OrderedDict()
+        for n in np.arange(0, self.ScikitPolynomialFeatures.n_input_features_):
+            self.name_dict[self.poly_feat[n]] = [self.columns[n]]
+
+        # reverse OrderedDict to avoid name issues
+        # eg., x1 & x11 confusion in column_name_string.replace()
+        self.name_dict = OrderedDict(reversed(list(self.name_dict.items())))
+
+        return self
+
+    def transform(self, X, **transform_params):
+        X = X.copy()[self.columns]
+        X_transform = self.ScikitPolynomialFeatures.transform(X.values)
+
+        # replace poly_feat names (x0, x1, etc.)
+        # with actual column names and cleanup
+        new_cols = self.poly_feat.copy()
+        for poly_feat in self.name_dict.keys():
+            for i, col in enumerate(new_cols):
+                new_cols[i] = (
+                    new_cols[i]
+                    .replace(' ', '*')
+                    .replace(poly_feat, self.name_dict[poly_feat][0])
+                )
+
+        # return df with original names used
+        X_transform = pd.DataFrame(
+            X_transform,
+            columns=new_cols,
+            index=X.index
+        )
+
+        return X_transform
+
+
+class ContinuousFeatureBinner(BaseEstimator, TransformerMixin):
+    """Creates bins for continuous features
+
+    :param field: the continuous field for which to create bins
+    :type field: string
+
+    :param bins: The criteria to bin by.
+    :type bins: array-like
+
+    :param right_inclusive: interval should be right-inclusive or not
+    :type right_inclusive: bool
+    """
+    def __init__(self, field, bins, right_inclusive=True):
+        self.field = field
+        self.bins = bins
+        self.right_inclusive = right_inclusive
+
+    def transform(self, df):
+        if self.field not in df.columns:
+            raise ValueError('Field not found in dataframe.')
+
+        # use pandas.cut() to create bins
+        df[str(self.field) + str('_GRP')] = pd.cut(
+            x=df[self.field],
+            bins=self.bins,
+            right=self.right_inclusive
+        )
+
+        # return labels as strings
+        df[str(self.field) + str('_GRP')] = (
+            df[str(self.field) + str('_GRP')].astype('str')
+        )
+
+        # label everything not in a bin as 'Other'
+        df[str(self.field) + str('_GRP')] = (
+            df[str(self.field) + str('_GRP')]
+            .replace('nan', np.NaN)
+            .fillna(value='Other')
+        )
+
+        return df
+
+    def fit(self, df):
+        return self
+
+
+class TypeExtractor(BaseEstimator, TransformerMixin):
+    """Returns dataframe with only specified field type
+
+    :param type: desired type; either 'numeric' or 'categorical'
+    :type type: string
+    """
+    def __init__(self, type):
+        self.type = type
+
+    def transform(self, df, **transform_params):
+        df = df[self.selected_fields]
+        return df
+
+    def fit(self, df, **fit_params):
+        if self.type == 'numeric':
+            df = df.select_dtypes(include=[np.number])
+            self.selected_fields = list(df.columns)
+
+        elif self.type == 'categorical':
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+            cat_cols = [col for col in df.columns if col not in numeric_cols]
+            df = df[cat_cols]
+            self.selected_fields = cat_cols
+
+        print('Selected fields: ' + str(self.selected_fields))
+        return self
+
+
+class GenericTransformer(BaseEstimator, TransformerMixin):
+    """Generic transformer that applies user-defined function within
+    pipeline framework. Arbitrary callable should only make transformations
+    and does not store any fit() parameters. Lambda functions are not supported
+    as they cannot be pickled.
+
+    :param function: arbitrary function to use as a transformer
+    :type function: callable
+
+    :param params: dict with function parameter name as key and parameter value
+    as value
+    :type params: dict
+    """
+    def __init__(self, function, params=None):
+        self.function = function
+        self.params = params
+
+    def transform(self, X, **transform_params):
+        if self.params is None:
+            X_transform = self.function(X)
+        else:
+            X_transform = self.function(X, **self.params)
+
+        return X_transform
+
+    def fit(self, X, y=None, **fit_params):
+        return self
