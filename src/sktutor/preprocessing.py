@@ -692,7 +692,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
     """Create BoxCox Transformations on all columns.
 
     :param adder: the amount to add to each column before the BoxCox
-    transformation
+                  transformation
     :type adder: numeric
     """
 
@@ -744,10 +744,10 @@ class InteractionCreator(BaseEstimator, TransformerMixin):
     """Creates interactions across columns of a ``DataFrame``
 
     :param columns1: first list of columns to create interactions with each of
-    the second list of columns
+                     the second list of columns
     :type columns1: list of strings
     :param columns2: second list of columns to create interactions with each of
-    the second list of columns
+                     the second list of columns
     :type columns2: list of strings
     """
     def __init__(self, columns1, columns2):
@@ -1017,9 +1017,8 @@ class GenericTransformer(BaseEstimator, TransformerMixin):
 
     :param function: arbitrary function to use as a transformer
     :type function: callable
-
     :param params: dict with function parameter name as key and parameter value
-    as value
+                   as value
     :type params: dict
     """
     def __init__(self, function, params=None):
