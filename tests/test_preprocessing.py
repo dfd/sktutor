@@ -1390,6 +1390,26 @@ class TestStandardScaler(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 
+    def test_fit_then_partial_transform(self, full_data_numeric):
+        # test using fit then transform on specified columns
+        prep = StandardScaler()
+        prep.fit(full_data_numeric)
+        result = prep.transform(X=full_data_numeric, cols=['c', 'e'])
+        exp_dict = {'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
+                          -0.31722063, -0.31722063,  0.87235674,  1.26888254,
+                          1.26888254,  1.26888254],
+                    'c': [-1.45260037, -1.10674314, -0.76088591, -0.41502868,
+                          -0.41502868, -0.41502868,  0.62254302,  1.31425748,
+                          1.31425748,  1.31425748],
+                    'e': [-1.5666989, -1.21854359, -0.87038828, -0.52223297,
+                          -0.17407766, 0.17407766, 0.52223297, 0.87038828,
+                          1.21854359, 1.5666989]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        expected = expected[['c', 'e']]
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
     def test_unordered_index(self, full_data_numeric):
         # Test unordered index is handled properly
         new_index = list(full_data_numeric.index)
@@ -1426,6 +1446,23 @@ class TestStandardScaler(object):
         tm.assert_frame_equal(
             full_data_numeric,
             original,
+            check_dtype=False,
+            check_like=True
+        )
+
+    def test_inverse_partial_transform(self, full_data_numeric):
+        # test inverse_transform
+        new_index = list(full_data_numeric.index)
+        shuffle(new_index)
+        full_data_numeric.index = new_index
+
+        prep = StandardScaler()
+        transformed = prep.fit_transform(full_data_numeric)
+        partial_original = prep.inverse_transform(transformed, cols=['a', 'e'])
+
+        tm.assert_frame_equal(
+            full_data_numeric[['a', 'e']],
+            partial_original,
             check_dtype=False,
             check_like=True
         )

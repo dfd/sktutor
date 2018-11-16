@@ -816,30 +816,56 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
         return X
 
-    def transform(self, X, **transform_params):
+    def transform(self, X, cols=None, **transform_params):
         """Transform X with the standard scaling
 
         :param X: The input data.
         :type X: pandas DataFrame
+        :param cols: when specified, only return results of these columns
+        :type X: list
         :rtype: A ``DataFrame`` with specified columns.
         """
+        # insert dummy columns into df if not provided
+        if cols is not None:
+            for col in self.columns:
+                if col not in X.columns:
+                    X[col] = 0
+
         # ensure that columns are in same order as in fit
         X = X.copy()[self.columns]
         X_transform = self.ScikitStandardScaler.transform(X)
         X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
+
+        # return only specified columns
+        if cols is not None:
+            X = X[cols]
+
         return X
 
-    def inverse_transform(self, X, **transform_params):
+    def inverse_transform(self, X, cols=None, **transform_params):
         """Inverse transform X with the standard scaling
 
         :param X: The input data.
         :type X: pandas DataFrame
+        :param cols: when specified, only return results of these columns
+        :type X: list
         :rtype: A ``DataFrame`` with specified columns.
         """
+        # insert dummy columns into df if not provided
+        if cols is not None:
+            for col in self.columns:
+                if col not in X.columns:
+                    X[col] = 0
+
         # ensure that columns are in same order as in fit
         X = X.copy()[self.columns]
         X_transform = self.ScikitStandardScaler.inverse_transform(X)
         X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
+
+        # return only specified columns
+        if cols is not None:
+            X = X[cols]
+
         return X
 
 
