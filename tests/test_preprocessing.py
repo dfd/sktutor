@@ -1353,7 +1353,7 @@ class TestInteractionCreator(object):
 @pytest.mark.usefixtures("full_data_numeric")
 class TestStandardScaler(object):
 
-    def test_fit_transfrom(self, full_data_numeric):
+    def test_fit_transform(self, full_data_numeric):
         # test default functionalty
         prep = StandardScaler()
         result = prep.fit_transform(full_data_numeric)
@@ -1367,6 +1367,23 @@ class TestStandardScaler(object):
                           -0.17407766, 0.17407766, 0.52223297, 0.87038828,
                           1.21854359, 1.5666989]
                     }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
+    def test_fit_transform_defined_columns(self, full_data_numeric):
+        # test defining which columns to apply standardization to
+        prep = StandardScaler(columns=['a', 'e'])
+        result = prep.fit_transform(full_data_numeric)
+        exp_dict = {
+            'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
+                  -0.31722063, -0.31722063,  0.87235674,  1.26888254,
+                  1.26888254,  1.26888254],
+            'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+            'e': [-1.5666989, -1.21854359, -0.87038828, -0.52223297,
+                  -0.17407766, 0.17407766, 0.52223297, 0.87038828,
+                  1.21854359, 1.5666989]
+        }
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
@@ -1390,11 +1407,29 @@ class TestStandardScaler(object):
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 
+    def test_fit_then_transform_defined_columns(self, full_data_numeric):
+        # test defining which columns to apply standardization to
+        prep = StandardScaler(columns=['a', 'e'])
+        prep.fit(full_data_numeric)
+        result = prep.transform(full_data_numeric)
+        exp_dict = {
+            'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
+                  -0.31722063, -0.31722063,  0.87235674,  1.26888254,
+                  1.26888254,  1.26888254],
+            'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+            'e': [-1.5666989, -1.21854359, -0.87038828, -0.52223297,
+                  -0.17407766, 0.17407766, 0.52223297, 0.87038828,
+                  1.21854359, 1.5666989]
+        }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
     def test_fit_then_partial_transform(self, full_data_numeric):
         # test using fit then transform on specified columns
         prep = StandardScaler()
         prep.fit(full_data_numeric)
-        result = prep.transform(X=full_data_numeric, cols=['c', 'e'])
+        result = prep.transform(X=full_data_numeric, partial_cols=['c', 'e'])
         exp_dict = {'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
                           -0.31722063, -0.31722063,  0.87235674,  1.26888254,
                           1.26888254,  1.26888254],
@@ -1458,13 +1493,25 @@ class TestStandardScaler(object):
 
         prep = StandardScaler()
         transformed = prep.fit_transform(full_data_numeric)
-        partial_original = prep.inverse_transform(transformed, cols=['a', 'e'])
+        partial_original = prep.inverse_transform(
+            transformed, partial_cols=['a', 'e']
+        )
 
         tm.assert_frame_equal(
             full_data_numeric[['a', 'e']],
             partial_original,
             check_dtype=False,
             check_like=True
+        )
+
+    def test_inverse_transform_defined_columns(self, full_data_numeric):
+        # test defining which columns to apply standardization to
+        prep = StandardScaler(columns=['a', 'e'])
+        prep.fit(full_data_numeric)
+        transformed = prep.fit_transform(full_data_numeric)
+        result = prep.inverse_transform(transformed)
+        tm.assert_frame_equal(
+            result, full_data_numeric, check_dtype=False, check_like=True
         )
 
 
