@@ -789,21 +789,25 @@ class StandardScaler(BaseEstimator, TransformerMixin):
     """Standardize features by removing mean and scaling to unit variance
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, columns=None, **kwargs):
+        self.columns = columns
         self.ScikitStandardScaler = ScikitStandardScaler(**kwargs)
 
-    def fit(self, X, y=None, **fit_params):
+    def fit(self, X, **fit_params):
         """Fit the transformer on X.
 
         :param X: The input data.
         :type X: pandas DataFrame
         :rtype: Returns self.
         """
-        self.columns = X.columns
-        self.ScikitStandardScaler.fit(X)
+        # assign columns if not defined at init
+        if self.columns is None:
+            self.columns = X.columns
+
+        self.ScikitStandardScaler.fit(X[self.columns])
         return self
 
-    def fit_transform(self, X, y=None, **fit_params):
+    def fit_transform(self, X, **fit_params):
         """Fit and transform the StandardScaler on X.
 
         :param X: The input data.
@@ -811,60 +815,109 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         :rtype: Returns self.
         """
         X = X.copy()
-        self.columns = X.columns
-        X_transform = self.ScikitStandardScaler.fit_transform(X)
-        X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
+        # assign columns if not defined at init
+        if self.columns is None:
+            self.columns = X.columns
+
+        self.ScikitStandardScaler.fit(X[self.columns])
+
+        # transform proper columns
+        X_transform = self.ScikitStandardScaler.transform(X[self.columns])
+        X_transform = pd.DataFrame(
+            X_transform, columns=self.columns, index=X.index
+        )
+
+        # keep track of order and combine transform/non-transform columns
+        cols_to_return = X.columns
+        non_transformed_cols = [
+            col for col in cols_to_return if col not in X_transform.columns
+        ]
+        X = pd.concat([X_transform, X[non_transformed_cols]], axis=1)
+
+        # put columns back into original order
+        X = X[cols_to_return]
+
         return X
 
-    def transform(self, X, cols=None, **transform_params):
+    def transform(self, X, partial_cols=None, **transform_params):
         """Transform X with the standard scaling
 
         :param X: The input data.
         :type X: pandas DataFrame
-        :param cols: when specified, only return results of these columns
+        :param partial_cols: when specified, only return these columns
         :type X: list
         :rtype: A ``DataFrame`` with specified columns.
         """
+        X = X.copy()
         # insert dummy columns into df if not provided
-        if cols is not None:
+        if partial_cols is not None:
             for col in self.columns:
                 if col not in X.columns:
                     X[col] = 0
 
-        # ensure that columns are in same order as in fit
-        X = X.copy()[self.columns]
-        X_transform = self.ScikitStandardScaler.transform(X)
-        X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
+        # remember order of original df
+        cols_to_return = X.columns
+
+        # transform columns in self.columns
+        X_transform = self.ScikitStandardScaler.transform(X[self.columns])
+        X_transform = pd.DataFrame(
+            X_transform, columns=self.columns, index=X.index
+        )
+
+        # add columns that weren't defined to be transformed back in
+        non_transformed_cols = [
+            col for col in cols_to_return if col not in X_transform.columns
+        ]
+        X = pd.concat([X_transform, X[non_transformed_cols]], axis=1)
+
+        # put columns back into original order
+        X = X[cols_to_return]
 
         # return only specified columns
-        if cols is not None:
-            X = X[cols]
+        if partial_cols is not None:
+            X = X[partial_cols]
 
         return X
 
-    def inverse_transform(self, X, cols=None, **transform_params):
+    def inverse_transform(self, X, partial_cols=None, **transform_params):
         """Inverse transform X with the standard scaling
 
         :param X: The input data.
         :type X: pandas DataFrame
-        :param cols: when specified, only return results of these columns
+        :param partial_cols: when specified, only return these columns
         :type X: list
         :rtype: A ``DataFrame`` with specified columns.
         """
+        X = X.copy()
         # insert dummy columns into df if not provided
-        if cols is not None:
+        if partial_cols is not None:
             for col in self.columns:
                 if col not in X.columns:
                     X[col] = 0
 
-        # ensure that columns are in same order as in fit
-        X = X.copy()[self.columns]
-        X_transform = self.ScikitStandardScaler.inverse_transform(X)
-        X = pd.DataFrame(X_transform, columns=self.columns, index=X.index)
+        # remember order of original df
+        cols_to_return = X.columns
+
+        # transform columns in self.columns
+        X_transform = self.ScikitStandardScaler.inverse_transform(
+            X[self.columns]
+        )
+        X_transform = pd.DataFrame(
+            X_transform, columns=self.columns, index=X.index
+        )
+
+        # add columns that weren't defined to be transformed back in
+        non_transformed_cols = [
+            col for col in cols_to_return if col not in X_transform.columns
+        ]
+        X = pd.concat([X_transform, X[non_transformed_cols]], axis=1)
+
+        # put columns back into original order
+        X = X[cols_to_return]
 
         # return only specified columns
-        if cols is not None:
-            X = X[cols]
+        if partial_cols is not None:
+            X = X[partial_cols]
 
         return X
 
