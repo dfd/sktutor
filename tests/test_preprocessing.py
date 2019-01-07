@@ -19,7 +19,8 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    BitwiseOperator, BoxCoxTransformer,
                                    InteractionCreator, StandardScaler,
                                    PolynomialFeatures, ContinuousFeatureBinner,
-                                   TypeExtractor, GenericTransformer)
+                                   TypeExtractor, GenericTransformer,
+                                   MissingColumnsReplacer)
 from sktutor.pipeline import make_union
 import numpy as np
 import pandas as pd
@@ -1995,6 +1996,74 @@ class TestGenericTransformer(object):
         }
         expected = pd.DataFrame(data_dict, index=new_index)
         expected = expected[['a', 'b', 'c', 'd', 'bias', 'new_col']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+
+@pytest.mark.usefixtures("full_data_numeric")
+class TestMissingColumnsReplacer(object):
+
+    def test_missing_transformer(self, full_data_numeric):
+        # test two missing colums
+        cols = ['a', 'b', 'c', 'd', 'e']
+
+        prep = MissingColumnsReplacer(cols, 0)
+        result = prep.fit_transform(full_data_numeric)
+
+        data_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                     'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+                     'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     'b': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                     'd': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                     }
+        expected = pd.DataFrame(data_dict)
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_missing_transformer_none_missing(self, full_data_numeric):
+        # test no missing colums
+        cols = ['a', 'c', 'e']
+
+        prep = MissingColumnsReplacer(cols, 0)
+        result = prep.fit_transform(full_data_numeric)
+
+        data_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                     'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+                     'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                     }
+        expected = pd.DataFrame(data_dict)
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_missing_transformer_unordered(self, full_data_numeric):
+        # Test unordered index is handled properly
+        new_index = sorted(list(full_data_numeric.index), reverse=True)
+        full_data_numeric.index = new_index
+
+        cols = ['a', 'b', 'c', 'd', 'e']
+
+        prep = MissingColumnsReplacer(cols, 0)
+        result = prep.fit_transform(full_data_numeric)
+
+        data_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                     'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+                     'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     'b': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                     'd': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                     }
+        expected = pd.DataFrame(data_dict, index=new_index)
 
         tm.assert_frame_equal(
             result,

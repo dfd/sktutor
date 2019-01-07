@@ -1114,3 +1114,34 @@ class GenericTransformer(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y=None, **fit_params):
         return self
+
+
+class MissingColumnsReplacer(BaseEstimator, TransformerMixin):
+    """Fill in missing columns to a DataFrame
+    :param cols: The expected list of columns.
+    :param value: The value to fill the new columns with by default
+    """
+    def __init__(self, cols, value):
+        self.cols = cols
+        self.value = value
+
+    def fit(self, X, y=None):
+        """Fit the imputer on X.
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        return self
+
+    def transform(self, X):
+        """Impute the eligible missing values in X.
+        :param X: The input data with missing values to be filled.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with eligible missing values filled.
+        """
+        X = X.copy(deep=True)
+        new_cols = sorted(list(set(self.cols) - set(X.columns)))
+        for col in new_cols:
+            X[col] = np.nan
+        X.loc[:, new_cols] = X[new_cols].fillna(self.value)
+        return X
