@@ -89,7 +89,6 @@ def make_union(*transformers, **kwargs):
     This is a shorthand for the FeatureUnion constructor; it does not require,
     and does not permit, naming the transformers. Instead, they will be given
     names automatically based on their types. It also does not allow weighting.
-    Parameters
 
     :param transformers: list of estimators
     :param n_jobs: Number of jobs to run in parallel (default 1).

@@ -19,7 +19,8 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    BitwiseOperator, BoxCoxTransformer,
                                    InteractionCreator, StandardScaler,
                                    PolynomialFeatures, ContinuousFeatureBinner,
-                                   TypeExtractor, GenericTransformer)
+                                   TypeExtractor, GenericTransformer,
+                                   MissingColumnsReplacer)
 from sktutor.pipeline import make_union
 import numpy as np
 import pandas as pd
@@ -1353,7 +1354,7 @@ class TestInteractionCreator(object):
 @pytest.mark.usefixtures("full_data_numeric")
 class TestStandardScaler(object):
 
-    def test_fit_transfrom(self, full_data_numeric):
+    def test_fit_transform(self, full_data_numeric):
         # test default functionalty
         prep = StandardScaler()
         result = prep.fit_transform(full_data_numeric)
@@ -1367,6 +1368,23 @@ class TestStandardScaler(object):
                           -0.17407766, 0.17407766, 0.52223297, 0.87038828,
                           1.21854359, 1.5666989]
                     }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
+    def test_fit_transform_defined_columns(self, full_data_numeric):
+        # test defining which columns to apply standardization to
+        prep = StandardScaler(columns=['a', 'e'])
+        result = prep.fit_transform(full_data_numeric)
+        exp_dict = {
+            'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
+                  -0.31722063, -0.31722063,  0.87235674,  1.26888254,
+                  1.26888254,  1.26888254],
+            'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+            'e': [-1.5666989, -1.21854359, -0.87038828, -0.52223297,
+                  -0.17407766, 0.17407766, 0.52223297, 0.87038828,
+                  1.21854359, 1.5666989]
+        }
         expected = pd.DataFrame(exp_dict)
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
@@ -1387,6 +1405,44 @@ class TestStandardScaler(object):
                           1.21854359, 1.5666989]
                     }
         expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
+    def test_fit_then_transform_defined_columns(self, full_data_numeric):
+        # test defining which columns to apply standardization to
+        prep = StandardScaler(columns=['a', 'e'])
+        prep.fit(full_data_numeric)
+        result = prep.transform(full_data_numeric)
+        exp_dict = {
+            'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
+                  -0.31722063, -0.31722063,  0.87235674,  1.26888254,
+                  1.26888254,  1.26888254],
+            'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+            'e': [-1.5666989, -1.21854359, -0.87038828, -0.52223297,
+                  -0.17407766, 0.17407766, 0.52223297, 0.87038828,
+                  1.21854359, 1.5666989]
+        }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False,
+                              check_like=True)
+
+    def test_fit_then_partial_transform(self, full_data_numeric):
+        # test using fit then transform on specified columns
+        prep = StandardScaler()
+        prep.fit(full_data_numeric)
+        result = prep.transform(X=full_data_numeric, partial_cols=['c', 'e'])
+        exp_dict = {'a': [-1.11027222, -1.11027222, -1.11027222, -0.71374643,
+                          -0.31722063, -0.31722063,  0.87235674,  1.26888254,
+                          1.26888254,  1.26888254],
+                    'c': [-1.45260037, -1.10674314, -0.76088591, -0.41502868,
+                          -0.41502868, -0.41502868,  0.62254302,  1.31425748,
+                          1.31425748,  1.31425748],
+                    'e': [-1.5666989, -1.21854359, -0.87038828, -0.52223297,
+                          -0.17407766, 0.17407766, 0.52223297, 0.87038828,
+                          1.21854359, 1.5666989]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        expected = expected[['c', 'e']]
         tm.assert_frame_equal(result, expected, check_dtype=False,
                               check_like=True)
 
@@ -1428,6 +1484,35 @@ class TestStandardScaler(object):
             original,
             check_dtype=False,
             check_like=True
+        )
+
+    def test_inverse_partial_transform(self, full_data_numeric):
+        # test inverse_transform
+        new_index = list(full_data_numeric.index)
+        shuffle(new_index)
+        full_data_numeric.index = new_index
+
+        prep = StandardScaler()
+        transformed = prep.fit_transform(full_data_numeric)
+        partial_original = prep.inverse_transform(
+            transformed, partial_cols=['a', 'e']
+        )
+
+        tm.assert_frame_equal(
+            full_data_numeric[['a', 'e']],
+            partial_original,
+            check_dtype=False,
+            check_like=True
+        )
+
+    def test_inverse_transform_defined_columns(self, full_data_numeric):
+        # test defining which columns to apply standardization to
+        prep = StandardScaler(columns=['a', 'e'])
+        prep.fit(full_data_numeric)
+        transformed = prep.fit_transform(full_data_numeric)
+        result = prep.inverse_transform(transformed)
+        tm.assert_frame_equal(
+            result, full_data_numeric, check_dtype=False, check_like=True
         )
 
 
@@ -1911,6 +1996,76 @@ class TestGenericTransformer(object):
         }
         expected = pd.DataFrame(data_dict, index=new_index)
         expected = expected[['a', 'b', 'c', 'd', 'bias', 'new_col']]
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+
+@pytest.mark.usefixtures("full_data_numeric")
+class TestMissingColumnsReplacer(object):
+
+    def test_missing_transformer(self, full_data_numeric):
+        # test two missing colums
+        cols = ['a', 'b', 'c', 'd', 'e']
+
+        prep = MissingColumnsReplacer(cols, 0)
+        result = prep.fit_transform(full_data_numeric)
+
+        data_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                     'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+                     'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     'b': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                     'd': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                     }
+        expected = pd.DataFrame(data_dict).reindex_axis(
+            ['a', 'c', 'e', 'b', 'd'], axis=1)
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_missing_transformer_none_missing(self, full_data_numeric):
+        # test no missing colums
+        cols = ['a', 'c', 'e']
+
+        prep = MissingColumnsReplacer(cols, 0)
+        result = prep.fit_transform(full_data_numeric)
+
+        data_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                     'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+                     'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                     }
+        expected = pd.DataFrame(data_dict)
+
+        tm.assert_frame_equal(
+            result,
+            expected,
+            check_dtype=False,
+        )
+
+    def test_missing_transformer_unordered(self, full_data_numeric):
+        # Test unordered index is handled properly
+        new_index = sorted(list(full_data_numeric.index), reverse=True)
+        full_data_numeric.index = new_index
+
+        cols = ['a', 'b', 'c', 'd', 'e']
+
+        prep = MissingColumnsReplacer(cols, 0)
+        result = prep.fit_transform(full_data_numeric)
+
+        data_dict = {'a': [2, 2, 2, 3, 4, 4, 7, 8, 8, 8],
+                     'c': [1, 2, 3, 4, 4, 4, 7, 9, 9, 9],
+                     'e': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     'b': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                     'd': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                     }
+        expected = pd.DataFrame(data_dict, index=new_index).reindex_axis(
+            ['a', 'c', 'e', 'b', 'd'], axis=1)
 
         tm.assert_frame_equal(
             result,
