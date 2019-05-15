@@ -7,7 +7,7 @@ import sklearn
 import pandas as pd
 import numpy as np
 
-if sklearn.__version__ < '0.19.0':
+if sklearn.__version__ < '0.20.0':
     _sklearn_version = 'old'
 else:
     _sklearn_version = 'new'
