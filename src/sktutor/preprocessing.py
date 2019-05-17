@@ -372,8 +372,7 @@ class SingleValueDropper(BaseEstimator, TransformerMixin):
         if self.dropna and x.isnull().sum() > 0:
             if None in values:
                 values.remove(None)
-            if np.nan in values:
-                values.remove(np.nan)
+            values = [value for value in values if value == value]
         return len(values)
 
     def fit(self, X, y=None):
