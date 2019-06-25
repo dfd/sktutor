@@ -792,7 +792,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         self.columns = columns
         self.ScikitStandardScaler = ScikitStandardScaler(**kwargs)
 
-    def fit(self, X, **fit_params):
+    def fit(self, X, y=None,  **fit_params):
         """Fit the transformer on X.
 
         :param X: The input data.
@@ -806,7 +806,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         self.ScikitStandardScaler.fit(X[self.columns])
         return self
 
-    def fit_transform(self, X, **fit_params):
+    def fit_transform(self, X, y=None, **fit_params):
         """Fit and transform the StandardScaler on X.
 
         :param X: The input data.
@@ -966,7 +966,7 @@ class PolynomialFeatures(BaseEstimator, TransformerMixin):
             include_bias=False
         )
 
-    def fit(self, X, **fit_params):
+    def fit(self, X, y=None, **fit_params):
         self.columns = X.columns
         self.ScikitPolynomialFeatures.fit(X.values)
 
