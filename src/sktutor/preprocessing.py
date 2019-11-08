@@ -784,13 +784,13 @@ class InteractionCreator(BaseEstimator, TransformerMixin):
         return pd.concat([X, model_matrix], axis=1)
 
 
-class StandardScaler(BaseEstimator, TransformerMixin):
+class StandardScaler(ScikitStandardScaler):
     """Standardize features by removing mean and scaling to unit variance
     """
 
     def __init__(self, columns=None, **kwargs):
         self.columns = columns
-        self.ScikitStandardScaler = ScikitStandardScaler(**kwargs)
+        super().__init__(**kwargs)
 
     def fit(self, X, y=None,  **fit_params):
         """Fit the transformer on X.
@@ -803,7 +803,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         if self.columns is None:
             self.columns = X.columns
 
-        self.ScikitStandardScaler.fit(X[self.columns])
+        super().fit(X[self.columns])
         return self
 
     def fit_transform(self, X, y=None, **fit_params):
@@ -818,10 +818,10 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         if self.columns is None:
             self.columns = X.columns
 
-        self.ScikitStandardScaler.fit(X[self.columns])
+        super().fit(X[self.columns])
 
         # transform proper columns
-        X_transform = self.ScikitStandardScaler.transform(X[self.columns])
+        X_transform = super().transform(X[self.columns])
         X_transform = pd.DataFrame(
             X_transform, columns=self.columns, index=X.index
         )
@@ -858,7 +858,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         cols_to_return = X.columns
 
         # transform columns in self.columns
-        X_transform = self.ScikitStandardScaler.transform(X[self.columns])
+        X_transform = super().transform(X[self.columns])
         X_transform = pd.DataFrame(
             X_transform, columns=self.columns, index=X.index
         )
@@ -898,7 +898,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         cols_to_return = X.columns
 
         # transform columns in self.columns
-        X_transform = self.ScikitStandardScaler.inverse_transform(
+        X_transform = super().inverse_transform(
             X[self.columns]
         )
         X_transform = pd.DataFrame(

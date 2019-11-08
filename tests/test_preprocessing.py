@@ -2025,7 +2025,7 @@ class TestMissingColumnsReplacer(object):
                      'b': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                      'd': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                      }
-        expected = pd.DataFrame(data_dict).reindex_axis(
+        expected = pd.DataFrame(data_dict).reindex(
             ['a', 'c', 'e', 'b', 'd'], axis=1)
 
         tm.assert_frame_equal(
@@ -2069,7 +2069,7 @@ class TestMissingColumnsReplacer(object):
                      'b': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                      'd': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                      }
-        expected = pd.DataFrame(data_dict, index=new_index).reindex_axis(
+        expected = pd.DataFrame(data_dict, index=new_index).reindex(
             ['a', 'c', 'e', 'b', 'd'], axis=1)
 
         tm.assert_frame_equal(
