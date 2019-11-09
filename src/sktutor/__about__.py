@@ -10,7 +10,7 @@ __title__ = "sktutor"
 __summary__ = "sktutor helps your machines learn."
 __uri__ = "https://github.com/dfd/sktutor"
 
-__version__ = "0.1.21dev"
+__version__ = "0.1.21"
 
 __author__ = "Dave Decker"
 __email__ = "dave.decker@gmail.com"
