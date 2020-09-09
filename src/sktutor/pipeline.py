@@ -2,12 +2,12 @@
 from sklearn.pipeline import (FeatureUnion as SKFeatureUnion,
                               _fit_transform_one, _name_estimators,
                               _transform_one)
-from sklearn.externals.joblib import Parallel, delayed
+from joblib import Parallel, delayed
 import sklearn
 import pandas as pd
 import numpy as np
 
-if sklearn.__version__ < '0.19.0':
+if sklearn.__version__ < '0.20.0':
     _sklearn_version = 'old'
 else:
     _sklearn_version = 'new'

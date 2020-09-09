@@ -372,8 +372,7 @@ class SingleValueDropper(BaseEstimator, TransformerMixin):
         if self.dropna and x.isnull().sum() > 0:
             if None in values:
                 values.remove(None)
-            if np.nan in values:
-                values.remove(np.nan)
+            values = [value for value in values if value == value]
         return len(values)
 
     def fit(self, X, y=None):
@@ -785,15 +784,15 @@ class InteractionCreator(BaseEstimator, TransformerMixin):
         return pd.concat([X, model_matrix], axis=1)
 
 
-class StandardScaler(BaseEstimator, TransformerMixin):
+class StandardScaler(ScikitStandardScaler):
     """Standardize features by removing mean and scaling to unit variance
     """
 
     def __init__(self, columns=None, **kwargs):
         self.columns = columns
-        self.ScikitStandardScaler = ScikitStandardScaler(**kwargs)
+        super().__init__(**kwargs)
 
-    def fit(self, X, **fit_params):
+    def fit(self, X, y=None,  **fit_params):
         """Fit the transformer on X.
 
         :param X: The input data.
@@ -804,10 +803,10 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         if self.columns is None:
             self.columns = X.columns
 
-        self.ScikitStandardScaler.fit(X[self.columns])
+        super().fit(X[self.columns])
         return self
 
-    def fit_transform(self, X, **fit_params):
+    def fit_transform(self, X, y=None, **fit_params):
         """Fit and transform the StandardScaler on X.
 
         :param X: The input data.
@@ -819,10 +818,10 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         if self.columns is None:
             self.columns = X.columns
 
-        self.ScikitStandardScaler.fit(X[self.columns])
+        super().fit(X[self.columns])
 
         # transform proper columns
-        X_transform = self.ScikitStandardScaler.transform(X[self.columns])
+        X_transform = super().transform(X[self.columns])
         X_transform = pd.DataFrame(
             X_transform, columns=self.columns, index=X.index
         )
@@ -859,7 +858,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         cols_to_return = X.columns
 
         # transform columns in self.columns
-        X_transform = self.ScikitStandardScaler.transform(X[self.columns])
+        X_transform = super().transform(X[self.columns])
         X_transform = pd.DataFrame(
             X_transform, columns=self.columns, index=X.index
         )
@@ -899,7 +898,7 @@ class StandardScaler(BaseEstimator, TransformerMixin):
         cols_to_return = X.columns
 
         # transform columns in self.columns
-        X_transform = self.ScikitStandardScaler.inverse_transform(
+        X_transform = super().inverse_transform(
             X[self.columns]
         )
         X_transform = pd.DataFrame(
@@ -967,7 +966,7 @@ class PolynomialFeatures(BaseEstimator, TransformerMixin):
             include_bias=False
         )
 
-    def fit(self, X, **fit_params):
+    def fit(self, X, y=None, **fit_params):
         self.columns = X.columns
         self.ScikitPolynomialFeatures.fit(X.values)
 
