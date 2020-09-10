@@ -62,7 +62,7 @@ class FeatureUnion(SKFeatureUnion):
         if _sklearn_version == 'old':
             Xs = Parallel(n_jobs=self.n_jobs)(
                 delayed(_transform_one)(
-                    transforme=trans,
+                    transformer=trans,
                     name=name,
                     weight=weight,
                     X=X
