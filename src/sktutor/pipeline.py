@@ -5,12 +5,8 @@ from sklearn.pipeline import (FeatureUnion as SKFeatureUnion,
 from joblib import Parallel, delayed
 import sklearn
 import pandas as pd
+import inspect
 import numpy as np
-
-if sklearn.__version__ < '0.20.0':
-    _sklearn_version = 'old'
-else:
-    _sklearn_version = 'new'
 
 
 class FeatureUnion(SKFeatureUnion):
@@ -19,30 +15,31 @@ class FeatureUnion(SKFeatureUnion):
     :param transformers: list of (string, transformer) tuples
     :param n_jobs: Number of jobs to run in parallel (default 1).
     """
-
+    
+    def fit_args(self, func, local):
+        sig = inspect.signature(func)
+        arg_dict = {}
+        fit_params = {}
+        for i in sig.parameters.values():
+            if i.name == 'transformer':
+                arg_dict[i.name]=local['trans']
+            elif '**' in str(i):
+                try:
+                    fit_params = local[i.name]
+                except:
+                    pass
+            else:
+                arg_dict[i.name]=local[i.name]
+        return arg_dict,fit_params
+    
     def fit_transform(self, X, y=None, **fit_params):
         self._validate_transformers()
-        if _sklearn_version == 'old':
-            result = Parallel(n_jobs=self.n_jobs)(
-                delayed(_fit_transform_one)(
-                    transformer=trans,
-                    name=name,
-                    weight=weight,
-                    X=X,
-                    y=y,
-                    **fit_params
-                )
-                for name, trans, weight in self._iter())
-        else:
-            result = Parallel(n_jobs=self.n_jobs)(
-                delayed(_fit_transform_one)(
-                    transformer=trans,
-                    weight=weight,
-                    X=X,
-                    y=y,
-                    **fit_params
-                )
-                for name, trans, weight in self._iter())
+        result = Parallel(n_jobs=self.n_jobs)(
+            delayed(_fit_transform_one)(
+                **(fit_args(_fit_transform_one,locals())[0]),
+                **(fit_args(_fit_transform_one,locals())[1])
+            )
+            for name, trans, weight in self._iter())
         if not result:
             # All transformers are None
             return np.zeros((X.shape[0], 0))
@@ -58,25 +55,12 @@ class FeatureUnion(SKFeatureUnion):
         :type X: iterable or array-like, depending on transformers
         :rtype: DataFrame with concatenated results of transformers.
         """
-
-        if _sklearn_version == 'old':
-            Xs = Parallel(n_jobs=self.n_jobs)(
-                delayed(_transform_one)(
-                    transformer=trans,
-                    name=name,
-                    weight=weight,
-                    X=X
-                )
-                for name, trans, weight in self._iter())
-        else:
-            Xs = Parallel(n_jobs=self.n_jobs)(
-                delayed(_transform_one)(
-                    transformer=trans,
-                    weight=weight,
-                    X=X,
-                    y=None
-                )
-                for name, trans, weight in self._iter())
+        Xs = Parallel(n_jobs=self.n_jobs)(
+            delayed(_transform_one)(
+                **(fit_args(_transform_one,locals())[0]),
+                **(fit_args(_transform_one,locals())[1])
+            )
+            for name, trans, weight in self._iter())
         if not Xs:
             # All transformers are None
             return np.zeros((X.shape[0], 0))
