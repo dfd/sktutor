@@ -36,8 +36,8 @@ class FeatureUnion(SKFeatureUnion):
         self._validate_transformers()
         result = Parallel(n_jobs=self.n_jobs)(
             delayed(_fit_transform_one)(
-                **(fit_args(_fit_transform_one,locals())[0]),
-                **(fit_args(_fit_transform_one,locals())[1])
+                **(self.fit_args(_fit_transform_one,locals())[0]),
+                **(self.fit_args(_fit_transform_one,locals())[1])
             )
             for name, trans, weight in self._iter())
         if not result:
@@ -57,8 +57,8 @@ class FeatureUnion(SKFeatureUnion):
         """
         Xs = Parallel(n_jobs=self.n_jobs)(
             delayed(_transform_one)(
-                **(fit_args(_transform_one,locals())[0]),
-                **(fit_args(_transform_one,locals())[1])
+                **(self.fit_args(_transform_one,locals())[0]),
+                **(self.fit_args(_transform_one,locals())[1])
             )
             for name, trans, weight in self._iter())
         if not Xs:
