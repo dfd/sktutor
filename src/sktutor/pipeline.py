@@ -15,33 +15,33 @@ class FeatureUnion(SKFeatureUnion):
     :param transformers: list of (string, transformer) tuples
     :param n_jobs: Number of jobs to run in parallel (default 1).
     """
-    
-    def fit_args(self, func, local,X=None,y=None):
+
+    def fit_args(self, func, local, X=None, y=None):
         sig = inspect.signature(func)
         arg_dict = {}
         fit_params = {}
         for i in sig.parameters.values():
             if i.name == 'transformer':
-                arg_dict[i.name]=local['trans']
+                arg_dict[i.name] = local['trans']
             elif '**' in str(i):
                 try:
                     fit_params = local[i.name]
-                except:
+                except exception as e:
                     pass
             else:
                 try:
-                    arg_dict[i.name]=local[i.name]
-                except:
-                    arg_dict[i.name]=None
-        arg_dict['X']=X
-        return arg_dict,fit_params
-    
+                    arg_dict[i.name] = local[i.name]
+                except exception as e:
+                    arg_dict[i.name] = None
+        arg_dict['X'] = X
+        return arg_dict, fit_params
+
     def fit_transform(self, X, y=None, **fit_params):
         self._validate_transformers()
         result = Parallel(n_jobs=self.n_jobs)(
             delayed(_fit_transform_one)(
-                **(self.fit_args(_fit_transform_one,locals(),X,y)[0]),
-                **(self.fit_args(_fit_transform_one,locals())[1])
+                **(self.fit_args(_fit_transform_one, locals(), X, y)[0]),
+                **(self.fit_args(_fit_transform_one, locals())[1])
             )
             for name, trans, weight in self._iter())
         if not result:
@@ -61,8 +61,8 @@ class FeatureUnion(SKFeatureUnion):
         """
         Xs = Parallel(n_jobs=self.n_jobs)(
             delayed(_transform_one)(
-                **(self.fit_args(_transform_one,locals(),X)[0]),
-                **(self.fit_args(_transform_one,locals())[1])
+                **(self.fit_args(_transform_one, locals(), X)[0]),
+                **(self.fit_args(_transform_one, locals())[1])
             )
             for name, trans, weight in self._iter())
         if not Xs:
