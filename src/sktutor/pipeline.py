@@ -16,7 +16,7 @@ class FeatureUnion(SKFeatureUnion):
     :param n_jobs: Number of jobs to run in parallel (default 1).
     """
     
-    def fit_args(self, func, local):
+    def fit_args(self, func, local,X=None,y=None):
         sig = inspect.signature(func)
         arg_dict = {}
         fit_params = {}
@@ -32,14 +32,16 @@ class FeatureUnion(SKFeatureUnion):
                 try:
                     arg_dict[i.name]=local[i.name]
                 except:
-                    print(local.keys())
+                    arg_dict[i.name]=None
+        arg_dict['X']=X
+        arg_dict['y']=y
         return arg_dict,fit_params
     
     def fit_transform(self, X, y=None, **fit_params):
         self._validate_transformers()
         result = Parallel(n_jobs=self.n_jobs)(
             delayed(_fit_transform_one)(
-                **(self.fit_args(_fit_transform_one,locals())[0]),
+                **(self.fit_args(_fit_transform_one,locals())[0],X,y),
                 **(self.fit_args(_fit_transform_one,locals())[1])
             )
             for name, trans, weight in self._iter())
@@ -60,7 +62,7 @@ class FeatureUnion(SKFeatureUnion):
         """
         Xs = Parallel(n_jobs=self.n_jobs)(
             delayed(_transform_one)(
-                **(self.fit_args(_transform_one,locals())[0]),
+                **(self.fit_args(_transform_one,locals())[0],X,y),
                 **(self.fit_args(_transform_one,locals())[1])
             )
             for name, trans, weight in self._iter())
