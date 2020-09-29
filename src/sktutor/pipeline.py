@@ -3,7 +3,6 @@ from sklearn.pipeline import (FeatureUnion as SKFeatureUnion,
                               _fit_transform_one, _name_estimators,
                               _transform_one)
 from joblib import Parallel, delayed
-import sklearn
 import pandas as pd
 import inspect
 import numpy as np
