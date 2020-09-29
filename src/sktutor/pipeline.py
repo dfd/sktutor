@@ -29,7 +29,10 @@ class FeatureUnion(SKFeatureUnion):
                 except:
                     pass
             else:
-                arg_dict[i.name]=local[i.name]
+                try:
+                    arg_dict[i.name]=local[i.name]
+                except:
+                    print(local.keys())
         return arg_dict,fit_params
     
     def fit_transform(self, X, y=None, **fit_params):
