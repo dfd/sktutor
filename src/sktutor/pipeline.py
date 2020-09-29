@@ -26,12 +26,12 @@ class FeatureUnion(SKFeatureUnion):
             elif '**' in str(i):
                 try:
                     fit_params = local[i.name]
-                except exception as e:
+                except KeyError:
                     pass
             else:
                 try:
                     arg_dict[i.name] = local[i.name]
-                except exception as e:
+                except KeyError:
                     arg_dict[i.name] = None
         arg_dict['X'] = X
         return arg_dict, fit_params
