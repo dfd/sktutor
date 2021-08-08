@@ -24,7 +24,7 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
 from sktutor.pipeline import make_union
 import numpy as np
 import pandas as pd
-import pandas.util.testing as tm
+import pandas.testing as tm
 from random import shuffle
 from sklearn.pipeline import make_pipeline
 
