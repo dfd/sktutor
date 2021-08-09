@@ -1691,8 +1691,8 @@ class TestContinuousFeatureBinner(object):
             'f': ['a', 'b', None, None, None, None, None, None, None, None],
             'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
             'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
-            'a_GRP': ['[0.0, 4.0)', '[0.0, 4.0)', 'Other', 'Other',
-                      '[4.0, 8.0)', '[4.0, 8.0)', '[4.0, 8.0)', 'Other',
+            'a_GRP': ['[0, 4)', '[0, 4)', 'Other', 'Other',
+                      '[4, 8)', '[4, 8)', '[4, 8)', 'Other',
                       'Other', 'Other']
         }
         expected = pd.DataFrame(expected, index=missing_data.index)
@@ -1722,9 +1722,9 @@ class TestContinuousFeatureBinner(object):
             'f': ['a', 'b', None, None, None, None, None, None, None, None],
             'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
             'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
-            'a_GRP': ['(1.0, 2.0]', '(1.0, 2.0]', 'Other', 'Other',
-                      '(3.0, 4.0]', '(3.0, 4.0]', '(6.0, 7.0]',
-                      '(7.0, 8.0]', 'Other', '(7.0, 8.0]']
+            'a_GRP': ['(1, 2]', '(1, 2]', 'Other', 'Other',
+                      '(3, 4]', '(3, 4]', '(6, 7]',
+                      '(7, 8]', 'Other', '(7, 8]']
         }
         expected = pd.DataFrame(expected, index=missing_data.index)
         expected = expected[['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'a_GRP']]
