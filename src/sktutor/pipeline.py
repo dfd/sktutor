@@ -4,7 +4,6 @@ from sklearn.pipeline import (FeatureUnion as SKFeatureUnion,
                               _transform_one)
 from joblib import Parallel, delayed
 import pandas as pd
-import inspect
 import numpy as np
 
 

@@ -42,7 +42,7 @@ class TestGroupByImputer(object):
                     'b': ['123', '123', '123',
                           '234', '456', '456',
                           '789', '789', '789', '789'],
-                    'c': [1.0, 2.0, 1.0, 4.0, 4.0, 4.0, 7.0, 9.0, 9.0, 9.0],
+                    'c': [1, 2, 1, 4, 4, 4, 7, 9, 9, 9],
                     'd': ['a', 'a', 'a', None, 'e', 'f', 'j', 'h', 'j', 'j'],
                     'e': [1, 2, 1, None, None, None, None, None, None, None],
                     'f': ['a', 'b', 'a', None, None, None, None, None, None,

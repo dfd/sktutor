@@ -961,7 +961,8 @@ class PolynomialFeatures(BaseEstimator, TransformerMixin):
     """Creates polynomail features from inputs.
 
     :param degree: The degree of the polynomial
-    :interaction_only: if true, only interaction features are produced: features that are products of at most degree distinct input features. 
+    :interaction_only: if true, only interaction features are produced: 
+    features that are products of at most degree distinct input features.
 
     """
     def __init__(self, degree=2, interaction_only=False):

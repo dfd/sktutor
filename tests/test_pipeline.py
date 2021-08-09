@@ -7,10 +7,7 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
 from sktutor.pipeline import (FeatureUnion, make_union)
 from sklearn.pipeline import make_pipeline
 import pandas as pd
-#import pandas.util.testing as tm
 import pandas.testing as tm
-import numpy as np
-from numpy.testing import assert_equal
 from random import shuffle
 
 
@@ -18,7 +15,7 @@ from random import shuffle
 class TestFeatureUnion(object):
 
     def test_feature_union(self, missing_data):
-        # Test FeatureUnion
+        #Test FeatureUnion
         CONTINUOUS_FIELDS = missing_data.select_dtypes(
             ['int64', 'float64']).columns.tolist()
         FACTOR_FIELDS = missing_data.select_dtypes(['object']).columns
