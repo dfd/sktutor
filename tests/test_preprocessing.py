@@ -1650,9 +1650,9 @@ class TestContinuousFeatureBinner(object):
             'f': ['a', 'b', None, None, None, None, None, None, None, None],
             'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
             'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
-            'a_GRP': ['(0.0, 3.0]', '(0.0, 3.0]', 'Other', 'Other',
-                      '(3.0, 6.0]', '(3.0, 6.0]', '(6.0, 9.0]',
-                      '(6.0, 9.0]', 'Other', '(6.0, 9.0]']
+            'a_GRP': ['(0, 3]', '(0, 3]', 'Other', 'Other',
+                      '(3, 6]', '(3, 6]', '(6, 9]',
+                      '(6, 9]', 'Other', '(6, 9]']
         }
         expected = pd.DataFrame(expected, index=missing_data.index)
         expected = expected[['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'a_GRP']]
@@ -1753,9 +1753,9 @@ class TestContinuousFeatureBinner(object):
             'f': ['a', 'b', None, None, None, None, None, None, None, None],
             'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
             'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
-            'a_GRP': ['(0.0, 3.0]', '(0.0, 3.0]', 'Other', 'Other',
-                      '(3.0, 6.0]', '(3.0, 6.0]', '(6.0, 9.0]',
-                      '(6.0, 9.0]', 'Other', '(6.0, 9.0]']
+            'a_GRP': ['(0, 3]', '(0, 3]', 'Other', 'Other',
+                      '(3, 6]', '(3, 6]', '(6, 9]',
+                      '(6, 9]', 'Other', '(6, 9]']
         }
         expected = pd.DataFrame(expected, index=missing_data.index)
         expected = expected[['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'a_GRP']]
@@ -1789,9 +1789,9 @@ class TestContinuousFeatureBinner(object):
             'f': ['a', 'b', None, None, None, None, None, None, None, None],
             'g': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b', None],
             'h': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', None, None],
-            'a_GRP': ['(0.0, 3.0]', '(0.0, 3.0]', 'Other', 'Other',
-                      '(3.0, 6.0]', '(3.0, 6.0]', '(6.0, 9.0]',
-                      '(6.0, 9.0]', 'Other', '(6.0, 9.0]']
+            'a_GRP': ['(0, 3]', '(0, 3]', 'Other', 'Other',
+                      '(3, 6]', '(3, 6]', '(6, 9]',
+                      '(6, 9]', 'Other', '(6, 9]']
         }
         expected = pd.DataFrame(expected, index=missing_data.index)
         expected = expected[['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'a_GRP']]

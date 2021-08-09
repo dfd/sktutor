@@ -15,7 +15,7 @@ from random import shuffle
 class TestFeatureUnion(object):
 
     def test_feature_union(self, missing_data):
-        #Test FeatureUnion
+        # Test FeatureUnion
         CONTINUOUS_FIELDS = missing_data.select_dtypes(
             ['int64', 'float64']).columns.tolist()
         FACTOR_FIELDS = missing_data.select_dtypes(['object']).columns
