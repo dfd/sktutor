@@ -8,7 +8,6 @@ from sktutor.pipeline import (FeatureUnion, make_union)
 from sklearn.pipeline import make_pipeline
 import pandas as pd
 import pandas.testing as tm
-from random import shuffle
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -96,7 +95,7 @@ class TestFeatureUnion(object):
     def test_unordered_index(self, missing_data):
         # Test FeatureUnion
         new_index = list(missing_data.index)
-        shuffle(new_index)
+        new_index = new_index[::-1]
         missing_data.index = new_index
 
         CONTINUOUS_FIELDS = missing_data.select_dtypes(
