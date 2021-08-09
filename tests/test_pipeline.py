@@ -7,10 +7,7 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
 from sktutor.pipeline import (FeatureUnion, make_union)
 from sklearn.pipeline import make_pipeline
 import pandas as pd
-import pandas.util.testing as tm
-import numpy as np
-from numpy.testing import assert_equal
-from random import shuffle
+import pandas.testing as tm
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -56,17 +53,6 @@ class TestFeatureUnion(object):
         expected = expected[['a', 'c', 'e', 'b', 'd', 'f', 'g', 'h']]
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
-    def test_feature_union_0s(self, missing_data):
-        # Test FeatureUnion with None type Transformers
-        fu = FeatureUnion([('Nothing', None), ('Nothing2', None)])
-        fu.fit(missing_data)
-        result = fu.transform(missing_data)
-        expected = np.array([], dtype=np.float64)
-        expected.shape = (10, 0)
-        print(expected)
-        print(result)
-        assert_equal(result, expected)
-
     def test_fit_transform(self, missing_data):
         # Test FeatureUnion fit_transform
         CONTINUOUS_FIELDS = missing_data.select_dtypes(
@@ -106,20 +92,10 @@ class TestFeatureUnion(object):
         expected = expected[['a', 'c', 'e', 'b', 'd', 'f', 'g', 'h']]
         tm.assert_frame_equal(result, expected, check_dtype=False)
 
-    def test_fit_transform_0s(self, missing_data):
-        # Test FeatureUnion fit_transform with None Transformers
-        fu = FeatureUnion([('Nothing', None), ('Nothing2', None)])
-        result = fu.fit_transform(missing_data)
-        expected = np.array([], dtype=np.float64)
-        expected.shape = (10, 0)
-        print(expected)
-        print(result)
-        assert_equal(result, expected)
-
     def test_unordered_index(self, missing_data):
         # Test FeatureUnion
         new_index = list(missing_data.index)
-        shuffle(new_index)
+        new_index = new_index[::-1]
         missing_data.index = new_index
 
         CONTINUOUS_FIELDS = missing_data.select_dtypes(

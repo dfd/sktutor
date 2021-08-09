@@ -21,10 +21,10 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-        'scipy>=0.19.0',
-        'pandas>=0.20.1',
-        'scikit-learn>=0.18.1',
-        'patsy>=0.4.1'
+        'scipy>=1.1.0',
+        'pandas>=1.1.5',
+        'scikit-learn>=0.24.2',
+        'patsy>=0.5.1'
 ]
 
 test_requirements = [
@@ -52,9 +52,9 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     test_suite='tests',
     tests_require=test_requirements

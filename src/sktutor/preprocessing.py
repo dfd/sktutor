@@ -190,7 +190,7 @@ class OverMissingThresholdDropper(BaseEstimator, TransformerMixin):
 class ValueReplacer(BaseEstimator, TransformerMixin):
     """Replaces Values in each column according to a nested dictionary.
     ``inverse_mapper`` is probably more intuitive for when one value replaces
-    many values.
+    many values.  Only one of ``inverse_mapper`` or ``mapper`` can be used.
 
     :param mapper: Nested dictionary with columns mapping to dictionaries
                    that map old values to new values.
@@ -263,6 +263,7 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
 class FactorLimiter(BaseEstimator, TransformerMixin):
     """For each named column, it limits factors to a list of acceptable values.
     Non-comforming factors, including missing values, are replaced by a default
+    value.
 
     :param factors_per_column: dictionary mapping column name keys to a
                                dictionary with a list of acceptable factor
@@ -462,7 +463,7 @@ class ColumnDropper(BaseEstimator, TransformerMixin):
 
 
 class DummyCreator(BaseEstimator, TransformerMixin):
-    """Create dummy variables from factors.
+    """Create dummy variables from categorical variables.
 
     :param dummy_na: Add a column to indicate NaNs, if False NaNs are ignored.
     :type dummy_na: boolean
@@ -957,6 +958,13 @@ class ColumnNameCleaner(BaseEstimator, TransformerMixin):
 
 
 class PolynomialFeatures(BaseEstimator, TransformerMixin):
+    """Creates polynomail features from inputs.
+
+    :param degree: The degree of the polynomial
+    :interaction_only: if true, only interaction features are produced:
+    features that are products of at most degree distinct input features.
+
+    """
     def __init__(self, degree=2, interaction_only=False):
         self.degree = degree
         self.interaction_only = interaction_only
@@ -967,6 +975,12 @@ class PolynomialFeatures(BaseEstimator, TransformerMixin):
         )
 
     def fit(self, X, y=None, **fit_params):
+        """Fit the transformer on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
         self.columns = X.columns
         self.ScikitPolynomialFeatures.fit(X.values)
 
@@ -989,6 +1003,12 @@ class PolynomialFeatures(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, **transform_params):
+        """Transform X with clean column names for patsy
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
         X = X.copy()[self.columns]
         X_transform = self.ScikitPolynomialFeatures.transform(X.values)
 

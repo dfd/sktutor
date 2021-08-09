@@ -12,7 +12,7 @@ import pytest
 from sktutor.utils import (dict_factory, dict_default, bitwise_operator,
                            bitwise_xor, bitwise_not)
 import pandas as pd
-import pandas.util.testing as tm
+import pandas.testing as tm
 
 
 # @pytest.mark.usefixtures("missing_data2")
