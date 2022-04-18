@@ -1198,14 +1198,12 @@ class SklearnPandasWrapper(BaseEstimator, TransformerMixin):
     """Wrap a scikit-learn Transformer with a pandas-friendly version that
     keeps columns and row indices in place.  Will only work for Transformers
     that do not add or change the order of columns.
-    :param transformer: The scikit-learn compatible Transformer class.
+    :param transformer: The scikit-learn compatible Transformer object.
     :type transformer: sklearn Transformer
-    :**kwargs: a dictionary of keyword arguments to pass to the scikit-learn
-    transformer class.
     """
 
-    def __init__(self, transformer, **kwargs):
-        self.transformer = transformer(**kwargs)
+    def __init__(self, transformer):
+        self.transformer = transformer
 
     def fit(self, X, y=None):
         """Fit the imputer on X.
