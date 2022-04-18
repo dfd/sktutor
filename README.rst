@@ -7,7 +7,7 @@ sktutor
         :target: https://pypi.python.org/pypi/sktutor
 
 .. image:: https://img.shields.io/travis/dfd/sktutor.svg
-        :target: https://travis-ci.com/dfd/sktutor
+        :target: https://app.travis-ci.com/github/dfd/sktutor
 
 .. image:: https://readthedocs.org/projects/sktutor/badge/?version=latest
         :target: https://sktutor.readthedocs.io/en/latest/?badge=latest
