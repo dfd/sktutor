@@ -2089,7 +2089,7 @@ class TestSklearnPandasWrapper(object):
         kwargs = {'categories':
                   [['c', 'b', 'a'],
                    ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j']]}
-        prep = SklearnPandasWrapper(OrdinalEncoder, **kwargs)
+        prep = SklearnPandasWrapper(OrdinalEncoder(**kwargs))
         prep.fit(full_data_factors)
         new_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
                     'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
@@ -2107,7 +2107,7 @@ class TestSklearnPandasWrapper(object):
         kwargs = {'categories':
                   [['c', 'b', 'a'],
                    ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j']]}
-        prep = SklearnPandasWrapper(OrdinalEncoder, **kwargs)
+        prep = SklearnPandasWrapper(OrdinalEncoder(**kwargs))
         prep.fit(full_data_factors)
         new_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c']
                     }
@@ -2123,7 +2123,7 @@ class TestSklearnPandasWrapper(object):
         kwargs = {'categories':
                   [['c', 'b', 'a'],
                    ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j']]}
-        prep = SklearnPandasWrapper(OrdinalEncoder, **kwargs)
+        prep = SklearnPandasWrapper(OrdinalEncoder(**kwargs))
         prep.fit(full_data_factors)
         result = prep.transform(full_data_factors)
 
