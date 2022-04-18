@@ -20,13 +20,15 @@ from sktutor.preprocessing import (GroupByImputer, MissingValueFiller,
                                    InteractionCreator, StandardScaler,
                                    PolynomialFeatures, ContinuousFeatureBinner,
                                    TypeExtractor, GenericTransformer,
-                                   MissingColumnsReplacer)
+                                   MissingColumnsReplacer,
+                                   SklearnPandasWrapper)
 from sktutor.pipeline import make_union
+from sklearn.pipeline import make_pipeline
 import numpy as np
 import pandas as pd
 import pandas.testing as tm
 from random import shuffle
-from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import OrdinalEncoder
 
 
 @pytest.mark.usefixtures("missing_data")
@@ -2077,3 +2079,56 @@ class TestMissingColumnsReplacer(object):
             expected,
             check_dtype=False,
         )
+
+
+@pytest.mark.usefixtures("full_data_factors")
+class TestSklearnPandasWrapper(object):
+
+    def test_ordinal(self, full_data_factors):
+        # Test with OrdinalEncoder
+        kwargs = {'categories':
+                  [['c', 'b', 'a'],
+                   ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j']]}
+        prep = SklearnPandasWrapper(OrdinalEncoder, **kwargs)
+        prep.fit(full_data_factors)
+        new_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c'],
+                    'd': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'j']
+                    }
+        new_data = pd.DataFrame(new_dict)
+        result = prep.transform(new_data)
+        exp_dict = {'c': [2, 2, 2, 1, 1, 0, 0, 2, 2, 0],
+                    'd': [0, 1, 2, 3, 4, 5, 6, 7, 8, 8]
+                    }
+        expected = pd.DataFrame(exp_dict)
+        tm.assert_frame_equal(result, expected, check_dtype=False)
+
+    def test_missing_columns_error(self, full_data_factors):
+        # Test throwing an error when the new data is missing columns
+        kwargs = {'categories':
+                  [['c', 'b', 'a'],
+                   ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j']]}
+        prep = SklearnPandasWrapper(OrdinalEncoder, **kwargs)
+        prep.fit(full_data_factors)
+        new_dict = {'c': ['a', 'a', 'a', 'b', 'b', 'c', 'c', 'a', 'a', 'c']
+                    }
+        new_data = pd.DataFrame(new_dict)
+        with pytest.raises(ValueError):
+            prep.transform(new_data)
+
+    def test_unordered_index(self, full_data_factors):
+        # Test unordered index is handled properly
+        new_index = list(full_data_factors.index)[::-1]
+        full_data_factors.index = new_index
+
+        kwargs = {'categories':
+                  [['c', 'b', 'a'],
+                   ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j']]}
+        prep = SklearnPandasWrapper(OrdinalEncoder, **kwargs)
+        prep.fit(full_data_factors)
+        result = prep.transform(full_data_factors)
+
+        exp_dict = {'c': [2, 2, 2, 1, 1, 0, 0, 2, 2, 0],
+                    'd': [0, 1, 2, 3, 4, 5, 6, 7, 8, 8]
+                    }
+        expected = pd.DataFrame(exp_dict, index=new_index)
+        tm.assert_frame_equal(result, expected, check_dtype=False)

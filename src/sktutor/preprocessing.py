@@ -1050,33 +1050,49 @@ class ContinuousFeatureBinner(BaseEstimator, TransformerMixin):
         self.bins = bins
         self.right_inclusive = right_inclusive
 
-    def transform(self, df):
-        if self.field not in df.columns:
+    def fit(self, X, y=None):
+        """Fit the ContinuousFeatureBinner on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        if self.field not in X.columns:
+            raise ValueError('field not in X.')
+        return self
+
+    def transform(self, X):
+        """Transform X on ``field``, adding a new column with ``_GRP``
+        appended.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with specified columns.
+        """
+        X = X.copy(deep=True)
+        if self.field not in X.columns:
             raise ValueError('Field not found in dataframe.')
 
         # use pandas.cut() to create bins
-        df[str(self.field) + str('_GRP')] = pd.cut(
-            x=df[self.field],
+        X[str(self.field) + str('_GRP')] = pd.cut(
+            x=X[self.field],
             bins=self.bins,
             right=self.right_inclusive
         )
 
         # return labels as strings
-        df[str(self.field) + str('_GRP')] = (
-            df[str(self.field) + str('_GRP')].astype('str')
+        X[str(self.field) + str('_GRP')] = (
+            X[str(self.field) + str('_GRP')].astype('str')
         )
 
         # label everything not in a bin as 'Other'
-        df[str(self.field) + str('_GRP')] = (
-            df[str(self.field) + str('_GRP')]
+        X[str(self.field) + str('_GRP')] = (
+            X[str(self.field) + str('_GRP')]
             .replace('nan', np.NaN)
             .fillna(value='Other')
         )
 
-        return df
-
-    def fit(self, df):
-        return self
+        return X
 
 
 class TypeExtractor(BaseEstimator, TransformerMixin):
@@ -1088,11 +1104,13 @@ class TypeExtractor(BaseEstimator, TransformerMixin):
     def __init__(self, type):
         self.type = type
 
-    def transform(self, df, **transform_params):
-        df = df[self.selected_fields]
-        return df
-
     def fit(self, df, **fit_params):
+        """Fit the TypeExtractor on X.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
         if self.type == 'numeric':
             df = df.select_dtypes(include=[np.number])
             self.selected_fields = list(df.columns)
@@ -1105,6 +1123,16 @@ class TypeExtractor(BaseEstimator, TransformerMixin):
 
         print('Selected fields: ' + str(self.selected_fields))
         return self
+
+    def transform(self, df, **transform_params):
+        """Extract all columns of ``type``.
+
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` with extracted columns.
+        """
+        df = df[self.selected_fields]
+        return df
 
 
 class GenericTransformer(BaseEstimator, TransformerMixin):
@@ -1164,3 +1192,40 @@ class MissingColumnsReplacer(BaseEstimator, TransformerMixin):
             X[col] = np.nan
         X.loc[:, new_cols] = X[new_cols].fillna(self.value)
         return X
+
+
+class SklearnPandasWrapper(BaseEstimator, TransformerMixin):
+    """Wrap a scikit-learn Transformer with a pandas-friendly version that
+    keeps columns and row indices in place.  Will only work for Transformers
+    that do not add or change the order of columns.
+    :param transformer: The scikit-learn compatible Transformer class.
+    :type transformer: sklearn Transformer
+    :**kwargs: a dictionary of keyword arguments to pass to the scikit-learn
+    transformer class.
+    """
+
+    def __init__(self, transformer, **kwargs):
+        self.transformer = transformer(**kwargs)
+
+    def fit(self, X, y=None):
+        """Fit the imputer on X.
+        :param X: The input data.
+        :type X: pandas DataFrame
+        :rtype: Returns self.
+        """
+        self.columns = X.columns
+        print(self.columns)
+        self.transformer.fit(X, y)
+        return self
+
+    def transform(self, X):
+        """Transform values in X.
+        :param X: The input data to be transformed.
+        :type X: pandas DataFrame
+        :rtype: A ``DataFrame`` trasnformed.
+        """
+        X_new = self.transformer.transform(X)
+        X_df = pd.DataFrame(X_new)
+        X_df.columns = self.columns
+        X_df.index = X.index
+        return X_df
