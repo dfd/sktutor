@@ -15,6 +15,12 @@ class FeatureUnion(SKFeatureUnion):
     """
 
     def fit_transform(self, X, y=None, **fit_params):
+        """Transform X separately by each transformer, concatenate results.
+
+        :param X: Input data to be transformed.
+        :type X: iterable or array-like, depending on transformers
+        :rtype: DataFrame with concatenated results of transformers.
+        """
         self._validate_transformers()
         result = Parallel(n_jobs=self.n_jobs)(
             delayed(_fit_transform_one)(
