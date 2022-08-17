@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import (
     StandardScaler as ScikitStandardScaler,
-    PolynomialFeatures as ScikitPolynomialFeatures
+    PolynomialFeatures as SkPolynomialFeatures
 )
 import numpy as np
 from sktutor.utils import dict_with_default, dict_default, bitwise_operator
@@ -84,8 +84,8 @@ class GroupByImputer(BaseEstimator, TransformerMixin):
         return self
 
     def _get_value_from_map(self, x, col):
-        """get a value from the mapper, for a given column and a ``pandas Series``
-        representing a row of data.
+        """get a value from the mapper, for a given column and a ``pandas
+        Series`` representing a row of data.
 
         :param x: A row of data from a ``DataFrame``.
         :type x: pandas Series
@@ -215,6 +215,7 @@ class ValueReplacer(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, mapper=None, inverse_mapper=None):
+        self.inverse_mapper = inverse_mapper
         if inverse_mapper and mapper:
             raise ValueError("Cannot use both a mapper and inverse_mapper.")
         elif inverse_mapper:
@@ -280,6 +281,7 @@ class FactorLimiter(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, factors_per_column=None):
+        self.factors_per_column = factors_per_column
         mapper = {}
         for col, specs in factors_per_column.items():
             # new_dict = dict_factory('new_dict', specs['default'])
@@ -963,12 +965,12 @@ class PolynomialFeatures(BaseEstimator, TransformerMixin):
     :param degree: The degree of the polynomial
     :interaction_only: if true, only interaction features are produced:
     features that are products of at most degree distinct input features.
-
     """
+
     def __init__(self, degree=2, interaction_only=False):
         self.degree = degree
         self.interaction_only = interaction_only
-        self.ScikitPolynomialFeatures = ScikitPolynomialFeatures(
+        self.SkPolynomialFeatures = SkPolynomialFeatures(
             degree=self.degree,
             interaction_only=self.interaction_only,
             include_bias=False
@@ -982,18 +984,18 @@ class PolynomialFeatures(BaseEstimator, TransformerMixin):
         :rtype: Returns self.
         """
         self.columns = X.columns
-        self.ScikitPolynomialFeatures.fit(X.values)
+        self.SkPolynomialFeatures.fit(X.values)
 
         # get polynomial feature names
         self.poly_feat = [
-            str(e) for e in self.ScikitPolynomialFeatures.get_feature_names()
+            str(e) for e in self.SkPolynomialFeatures.get_feature_names_out()
             if 'x' in e
         ]
 
         # for each polynomial feature name (x0, x1, etc)
         # map to df column name
         self.name_dict = OrderedDict()
-        for n in np.arange(0, self.ScikitPolynomialFeatures.n_input_features_):
+        for n in np.arange(0, self.SkPolynomialFeatures.n_features_in_):
             self.name_dict[self.poly_feat[n]] = [self.columns[n]]
 
         # reverse OrderedDict to avoid name issues
@@ -1010,7 +1012,7 @@ class PolynomialFeatures(BaseEstimator, TransformerMixin):
         :rtype: A ``DataFrame`` with specified columns.
         """
         X = X.copy()[self.columns]
-        X_transform = self.ScikitPolynomialFeatures.transform(X.values)
+        X_transform = self.SkPolynomialFeatures.transform(X.values)
 
         # replace poly_feat names (x0, x1, etc.)
         # with actual column names and cleanup
